@@ -1,26 +1,75 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-xp-blue: #0a246a;
+  --color-xp-titlebar: #2c6fca;
+  --color-xp-titlebar-dark: #1244a8;
+  --color-xp-green: #3b8c16;
+  --color-xp-window-bg: #ece9d8;
+  --color-xp-taskbar: #1550a0;
+  --color-xp-start: #5fad2a;
+  --color-xp-highlight: #316ac5;
+  --font-xp: Tahoma, "MS Sans Serif", Arial, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-xp);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+::-webkit-scrollbar { width: 16px; }
+::-webkit-scrollbar-track { background: #ece9d8; border-left: 1px solid #aaa; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #d4d0c8, #ece9d8, #d4d0c8);
+  border: 1px solid #999;
+}
+::-webkit-scrollbar-button { display: block; height: 16px; background: #d4d0c8; border: 1px solid #999; }
+
+.xp-input {
+  width: 100%;
+  padding: 3px 5px;
+  border: 1px inset #999;
+  background: #fff;
+  font-size: 11px;
+  font-family: var(--font-xp);
+  outline: none;
+}
+.xp-input:focus {
+  border-color: #0a246a;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+@keyframes float-cloud {
+  0% { transform: translateX(-200px); }
+  100% { transform: translateX(calc(100vw + 200px)); }
+}
+
+@keyframes boot-segment {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes particle-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.6; }
+  50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+}
+
+.typing-cursor::after {
+  content: '|';
+  animation: blink 1s step-end infinite;
+}
+
+::selection {
+  background: #316ac5;
+  color: #fff;
 }
