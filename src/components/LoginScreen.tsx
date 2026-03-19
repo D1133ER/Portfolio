@@ -1,9 +1,118 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useEffect, useRef } from 'react';
 
 interface LoginScreenProps {
   onLogin: () => void;
+}
+
+// Characters to scatter in the background
+const GLITCH_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&!?<>/\\[]{}|';
+
+function GlitchBackground() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d')!;
+
+    const resize = () => {
+      canvas.width  = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    const CELL  = 18;  // px per cell
+    const COLS  = Math.floor(canvas.width  / CELL);
+    const ROWS  = Math.floor(canvas.height / CELL);
+    const TOTAL = COLS * ROWS;
+
+    // Each cell has a "kind": normal | bright | highlight
+    type Kind = 'normal' | 'bright' | 'highlight';
+    type Cell = { char: string; opacity: number; dir: 1 | -1; speed: number; glitchTimer: number; kind: Kind };
+
+    const pickKind = (): Kind => {
+      const r = Math.random();
+      if (r < 0.07) return 'highlight';  // ~7% cyan/orange accent
+      if (r < 0.30) return 'bright';     // ~23% brighter blue-white
+      return 'normal';
+    };
+
+    const cells: Cell[] = Array.from({ length: TOTAL }, () => {
+      const kind = pickKind();
+      return {
+        char:        GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)],
+        opacity:     Math.random() * 0.55,
+        dir:         (Math.random() > 0.5 ? 1 : -1) as 1 | -1,
+        speed:       0.004 + Math.random() * 0.014,
+        glitchTimer: Math.floor(Math.random() * 80),
+        kind,
+      };
+    });
+
+    let raf: number;
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = 'bold 15px monospace';
+
+      cells.forEach((cell, idx) => {
+        const col = idx % COLS;
+        const row = Math.floor(idx / COLS);
+        const x   = col * CELL + 2;
+        const y   = row * CELL + 14;
+
+        // Fade in/out
+        cell.opacity += cell.speed * cell.dir;
+        const maxOp = cell.kind === 'highlight' ? 0.85
+                    : cell.kind === 'bright'    ? 0.60
+                    : 0.40;
+        if (cell.opacity >= maxOp) { cell.opacity = maxOp; cell.dir = -1; }
+        if (cell.opacity <= 0)     { cell.opacity = 0;     cell.dir = 1;
+          // re-roll kind when a cell resets so the grid stays dynamic
+          cell.kind = pickKind();
+        }
+
+        // Scramble char frequently
+        cell.glitchTimer--;
+        if (cell.glitchTimer <= 0) {
+          cell.char        = GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
+          cell.glitchTimer = 8 + Math.floor(Math.random() * 70);
+        }
+
+        // Pick colour by kind
+        const colour = cell.kind === 'highlight'
+          ? (Math.random() > 0.5
+              ? `rgba(80, 220, 255, ${cell.opacity})`   // cyan
+              : `rgba(255, 160,  60, ${cell.opacity})`) // orange
+          : cell.kind === 'bright'
+          ? `rgba(220, 235, 255, ${cell.opacity})`      // bright white-blue
+          : `rgba(140, 185, 255, ${cell.opacity})`;     // standard blue
+
+        ctx.fillStyle = colour;
+        ctx.fillText(cell.char, x, y);
+      });
+
+      raf = requestAnimationFrame(draw);
+    };
+
+    raf = requestAnimationFrame(draw);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      style={{ zIndex: 0 }}
+    />
+  );
 }
 
 export default function LoginScreen({ onLogin }: LoginScreenProps) {
@@ -16,9 +125,11 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
       exit={{ opacity: 0, scale: 1.1 }}
       transition={{ duration: 0.5 }}
     >
+      {/* ── Glitch character background ── */}
+      <GlitchBackground />
       {/* Top bar */}
       <motion.div
-        className="w-full text-center py-3 px-5 text-white border-b-2 border-blue-400"
+        className="w-full text-center py-3 px-5 text-white border-b-2 border-blue-400 relative z-[1]"
         style={{ background: 'linear-gradient(180deg, #2c5fa8 0%, #1a3c7a 100%)' }}
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -29,7 +140,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
       </motion.div>
 
       {/* Main login area */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-5">
+      <div className="flex-1 flex flex-col items-center justify-center gap-5 relative z-[1]">
         <motion.div
           className="flex flex-col items-center gap-3 px-9 py-5 rounded cursor-pointer min-w-[220px]"
           style={{
@@ -84,7 +195,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
 
       {/* Bottom bar */}
       <motion.div
-        className="w-full flex justify-between items-center px-5 py-2.5 border-t-2 border-blue-400"
+        className="w-full flex justify-between items-center px-5 py-2.5 border-t-2 border-blue-400 relative z-[1]"
         style={{ background: 'linear-gradient(180deg, #1a3c7a 0%, #0f2752 100%)' }}
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

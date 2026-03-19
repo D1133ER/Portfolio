@@ -9,6 +9,7 @@ const desktopIcons: { id: WindowId | '__recycle__'; icon: string; label: string 
   { id: 'about',      icon: '🖥️', label: 'My Portfolio'  },
   { id: 'projects',   icon: '📂', label: 'My Projects'   },
   { id: 'skills',     icon: '⚙️', label: 'My Skills'     },
+  { id: 'terminal',   icon: '💻', label: 'cmd.exe'       },
   { id: '__recycle__', icon: '🗑️', label: 'Recycle Bin'  },
 ];
 

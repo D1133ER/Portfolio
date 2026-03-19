@@ -1,9 +1,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useRef, ReactNode } from 'react';
+import { useRef, ReactNode, useEffect } from 'react';
 import { useWindows } from '@/context/WindowContext';
 import { WindowId } from '@/types';
+import { playWindowOpen, playWindowClose, playClick } from '@/utils/sounds';
 
 interface XPWindowProps {
   id: WindowId;
@@ -40,6 +41,14 @@ export default function XPWindow({
   const windowRef = useRef<HTMLDivElement>(null);
 
   const win = getWindow(id);
+
+  // Play sound when the window opens
+  const prevOpenRef = useRef(false);
+  useEffect(() => {
+    if (win?.isOpen && !prevOpenRef.current) playWindowOpen();
+    prevOpenRef.current = win?.isOpen ?? false;
+  }, [win?.isOpen]);
+
   if (!win || !win.isOpen) return null;
 
   // Determine active window (highest zIndex among open, non-minimized)
@@ -149,7 +158,7 @@ export default function XPWindow({
             style={{ background: 'linear-gradient(180deg, #4fa0e8 0%, #2878c8 100%)', borderColor: '#1a4a90' }}
             whileHover={{ filter: 'brightness(1.3)' }} whileTap={{ scale: 0.88 }}
             onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); minimizeWindow(id); }}
+            onClick={(e) => { e.stopPropagation(); playClick(); minimizeWindow(id); }}
           >
             <span style={{ marginTop: 4, display: 'block', lineHeight: 1 }}>_</span>
           </motion.button>
@@ -159,7 +168,7 @@ export default function XPWindow({
             style={{ background: 'linear-gradient(180deg, #4fa0e8 0%, #2878c8 100%)', borderColor: '#1a4a90' }}
             whileHover={{ filter: 'brightness(1.3)' }} whileTap={{ scale: 0.88 }}
             onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); win.isMaximized ? restoreWindow(id) : maximizeWindow(id); }}
+            onClick={(e) => { e.stopPropagation(); playClick(); win.isMaximized ? restoreWindow(id) : maximizeWindow(id); }}
             title={win.isMaximized ? 'Restore' : 'Maximize'}
           >
             {win.isMaximized ? '❐' : '□'}
@@ -170,7 +179,7 @@ export default function XPWindow({
             style={{ background: 'linear-gradient(180deg, #e86060 0%, #c03030 100%)', borderColor: '#901010' }}
             whileHover={{ filter: 'brightness(1.3)' }} whileTap={{ scale: 0.88 }}
             onMouseDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); closeWindow(id); }}
+            onClick={(e) => { e.stopPropagation(); playWindowClose(); closeWindow(id); }}
           >
             ✕
           </motion.button>

@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useWindows } from '@/context/WindowContext';
 import { WindowId } from '@/types';
+import { getMuted, setMuted, playLogoff, playShutdown, playLogoffConfirm, playShutdownConfirm } from '@/utils/sounds';
+import GlitchText from './GlitchText';
 
 interface TaskbarProps {
   onLogOff: () => void;
@@ -15,6 +17,13 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
   const [date, setDate]       = useState('');
   const [startOpen, setStartOpen] = useState(false);
   const [logOffDialog, setLogOffDialog] = useState<'logoff' | 'shutdown' | null>(null);
+  const [muted, setMutedState] = useState(false);
+
+  const toggleMute = () => {
+    const next = !muted;
+    setMutedState(next);
+    setMuted(next);
+  };
 
   useEffect(() => {
     const update = () => {
@@ -58,6 +67,7 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
     { id: 'education',  icon: '🎓', label: 'Education'     },
     { id: 'projects',   icon: '📂', label: 'My Projects'   },
     { id: 'contact',    icon: '✉️', label: 'Contact Me'    },
+    { id: 'terminal',   icon: '💻', label: 'Command Prompt'},
   ];
 
   return (
@@ -73,6 +83,7 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
             exit={{ opacity: 0 }}
           >
             <motion.div
+              key={logOffDialog}
               className="w-[340px] overflow-hidden"
               style={{
                 background: '#ece9d8',
@@ -95,9 +106,11 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
                   <div className="rounded-[1px] bg-blue-400  w-[5px] h-[5px]" />
                   <div className="rounded-[1px] bg-yellow-300 w-[5px] h-[5px]" />
                 </div>
-                <span className="text-white text-[11px] font-bold">
-                  {logOffDialog === 'logoff' ? 'Log Off Windows' : 'Turn Off Computer'}
-                </span>
+                <GlitchText
+                  text={logOffDialog === 'logoff' ? 'Log Off Windows' : 'Turn Off Computer'}
+                  duration={900}
+                  className="text-white text-[11px] font-bold"
+                />
               </div>
 
               {/* Body */}
@@ -108,7 +121,10 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
                   </span>
                   <div>
                     <p className="text-[12px] font-bold text-[#0a246a] mb-1">
-                      {logOffDialog === 'logoff' ? 'Log Off Windows' : 'Turn Off Computer'}
+                      <GlitchText
+                        text={logOffDialog === 'logoff' ? 'Log Off Windows' : 'Turn Off Computer'}
+                        duration={1100}
+                      />
                     </p>
                     <p className="text-[11px] text-[#333] leading-relaxed">
                       {logOffDialog === 'logoff'
@@ -123,7 +139,12 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
                   <motion.button
                     className="px-6 py-1.5 text-[11px] border border-[#888] cursor-pointer font-bold"
                     style={{ background: 'linear-gradient(180deg, #ece9d8 0%, #d4d0c8 100%)', minWidth: 80 }}
-                    onClick={() => { setLogOffDialog(null); onLogOff(); }}
+                    onClick={() => {
+                      if (logOffDialog === 'logoff') { playLogoffConfirm(); }
+                      else                           { playShutdownConfirm(); }
+                      setLogOffDialog(null);
+                      onLogOff();
+                    }}
                     whileHover={{ filter: 'brightness(1.07)' }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -216,14 +237,14 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
                 <div className="flex gap-3">
                   <motion.span
                     className="text-blue-200 cursor-pointer hover:text-white flex items-center gap-1"
-                    onClick={() => { setStartOpen(false); setLogOffDialog('shutdown'); }}
+                    onClick={() => { setStartOpen(false); playShutdown(); setLogOffDialog('shutdown'); }}
                     whileHover={{ textDecoration: 'underline' }}
                   >
                     🔴 Turn Off
                   </motion.span>
                   <motion.span
                     className="text-blue-200 cursor-pointer hover:text-white flex items-center gap-1"
-                    onClick={() => { setStartOpen(false); setLogOffDialog('logoff'); }}
+                    onClick={() => { setStartOpen(false); playLogoff(); setLogOffDialog('logoff'); }}
                     whileHover={{ textDecoration: 'underline' }}
                   >
                     🔒 Log Off
@@ -307,7 +328,15 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
           <div className="flex items-center gap-1.5 px-2 h-full border-l border-white/20"
             style={{ background: 'rgba(0,0,0,0.18)' }}>
             <span className="text-[12px] opacity-75 cursor-default" title="Network">📶</span>
-            <span className="text-[12px] opacity-75 cursor-default" title="Volume">🔊</span>
+            <motion.button
+              className="text-[12px] opacity-75 cursor-pointer bg-transparent border-none p-0 leading-none"
+              title={muted ? 'Unmute sounds' : 'Mute sounds'}
+              onClick={toggleMute}
+              whileHover={{ opacity: 1 }}
+              whileTap={{ scale: 0.85 }}
+            >
+              {muted ? '🔇' : '🔊'}
+            </motion.button>
             <span className="text-[12px] opacity-75 cursor-default" title="Power">⚡</span>
           </div>
           <div

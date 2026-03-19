@@ -10,6 +10,7 @@ const defaultWindows: WindowState[] = [
   { id: 'education',  title: 'Education — Academic Records',    icon: '🎓', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 150, y: 90 }, size: { width: 400, height: 380 } },
   { id: 'contact',    title: 'New Message',                     icon: '✉️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 100, y: 50 }, size: { width: 510, height: 560 } },
   { id: 'projects',   title: 'My Projects — File Manager',      icon: '📂', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 120, y: 60 }, size: { width: 520, height: 560 } },
+  { id: 'terminal',   title: 'Command Prompt',                  icon: '💻', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 160, y: 80 }, size: { width: 540, height: 380 } },
 ];
 
 type Action =

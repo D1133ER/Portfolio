@@ -3,15 +3,28 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useCallback, useEffect } from 'react';
 import { useWindows } from '@/context/WindowContext';
+import { playStartupChime } from '@/utils/sounds';
 
 import DesktopIcons from './DesktopIcons';
 import Taskbar from './Taskbar';
+import BalloonNotification from './BalloonNotification';
+import Screensaver from './Screensaver';
 import AboutWindow from './windows/AboutWindow';
 import ExperienceWindow from './windows/ExperienceWindow';
 import SkillsWindow from './windows/SkillsWindow';
 import EducationWindow from './windows/EducationWindow';
 import ContactWindow from './windows/ContactWindow';
 import ProjectsWindow from './windows/ProjectsWindow';
+import CmdWindow from './windows/CmdWindow';
+
+// Cloud data: { delay (s), duration (s), top (%), size (px), opacity }
+const CLOUDS = [
+  { id: 0, delay: 0,  duration: 55, top:  8, size: 90,  opacity: 0.55 },
+  { id: 1, delay: 12, duration: 75, top: 16, size: 130, opacity: 0.45 },
+  { id: 2, delay: 4,  duration: 45, top:  5, size: 70,  opacity: 0.6  },
+  { id: 3, delay: 28, duration: 65, top: 22, size: 110, opacity: 0.35 },
+  { id: 4, delay: 18, duration: 85, top: 12, size: 150, opacity: 0.3  },
+] as const;
 
 type CtxMenu = { x: number; y: number } | null;
 
@@ -23,10 +36,11 @@ export default function Desktop({ onLogOff }: DesktopProps) {
   const { openWindow } = useWindows();
   const [ctxMenu, setCtxMenu] = useState<CtxMenu>(null);
 
-  // Auto-open the About window when the desktop first loads
+  // Auto-open the About window when the desktop first loads + play startup chime
   useEffect(() => {
-    const t = setTimeout(() => openWindow('about'), 400);
-    return () => clearTimeout(t);
+    const t1 = setTimeout(() => openWindow('about'), 400);
+    const t2 = setTimeout(() => playStartupChime(), 600);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [openWindow]);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
@@ -65,6 +79,31 @@ export default function Desktop({ onLogOff }: DesktopProps) {
         }}
       />
 
+      {/* ── Animated clouds ── */}
+      {CLOUDS.map((c) => (
+        <div
+          key={c.id}
+          className="absolute pointer-events-none"
+          style={{
+            top:     `${c.top}%`,
+            opacity: c.opacity,
+            animation: `float-cloud ${c.duration}s linear ${c.delay}s infinite`,
+          }}
+        >
+          {/* Cloud shape made of stacked ellipses */}
+          <div className="relative" style={{ width: c.size, height: c.size * 0.55 }}>
+            <div className="absolute rounded-full bg-white"
+              style={{ width: '60%', height: '70%', bottom: 0, left: '20%' }} />
+            <div className="absolute rounded-full bg-white"
+              style={{ width: '45%', height: '65%', bottom: '10%', left: '5%' }} />
+            <div className="absolute rounded-full bg-white"
+              style={{ width: '50%', height: '75%', bottom: '5%', right: '8%' }} />
+            <div className="absolute rounded-full bg-white"
+              style={{ width: '70%', height: '50%', bottom: 0, left: '15%' }} />
+          </div>
+        </div>
+      ))}
+
       {/* ── Mountain ridges ── */}
       <div className="absolute bottom-[30px] left-0 right-0 h-[200px]">
         <div
@@ -87,8 +126,11 @@ export default function Desktop({ onLogOff }: DesktopProps) {
       <EducationWindow />
       <ContactWindow />
       <ProjectsWindow />
+      <CmdWindow />
 
       <Taskbar onLogOff={onLogOff} />
+      <BalloonNotification />
+      <Screensaver />
 
       {/* ── Right-click context menu ── */}
       <AnimatePresence>
