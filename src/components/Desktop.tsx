@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useCallback, useEffect } from 'react';
 import { useWindows } from '@/context/WindowContext';
 import { playStartupChime } from '@/utils/sounds';
+import { devQuotes } from '@/data/portfolio';
 
 import DesktopIcons from './DesktopIcons';
 import Taskbar from './Taskbar';
@@ -16,6 +17,13 @@ import EducationWindow from './windows/EducationWindow';
 import ContactWindow from './windows/ContactWindow';
 import ProjectsWindow from './windows/ProjectsWindow';
 import CmdWindow from './windows/CmdWindow';
+import QuizWindow from './windows/QuizWindow';
+import RadarWindow from './windows/RadarWindow';
+import TimelineWindow from './windows/TimelineWindow';
+import CertsWindow from './windows/CertsWindow';
+import RateCardWindow from './windows/RateCardWindow';
+import SnippetsWindow from './windows/SnippetsWindow';
+import ShortcutsWindow from './windows/ShortcutsWindow';
 
 // Cloud data: { delay (s), duration (s), top (%), size (px), opacity }
 const CLOUDS = [
@@ -36,11 +44,30 @@ export default function Desktop({ onLogOff }: DesktopProps) {
   const { openWindow } = useWindows();
   const [ctxMenu, setCtxMenu] = useState<CtxMenu>(null);
 
+  // Daily quote — rotates by day-of-year
+  const todayQuote = devQuotes[Math.floor(Date.now() / 86_400_000) % devQuotes.length];
+
   // Auto-open the About window when the desktop first loads + play startup chime
   useEffect(() => {
     const t1 = setTimeout(() => openWindow('about'), 400);
     const t2 = setTimeout(() => playStartupChime(), 600);
     return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [openWindow]);
+
+  // Global Ctrl+Alt keyboard shortcuts
+  useEffect(() => {
+    const map: Record<string, import('@/types').WindowId> = {
+      a: 'about', e: 'experience', s: 'skills', p: 'projects',
+      c: 'contact', t: 'terminal', q: 'quiz', r: 'radar',
+      l: 'timeline', g: 'certs', w: 'ratecard', i: 'snippets', k: 'shortcuts',
+    };
+    const handler = (ev: KeyboardEvent) => {
+      if (!ev.ctrlKey || !ev.altKey) return;
+      const id = map[ev.key.toLowerCase()];
+      if (id) { ev.preventDefault(); openWindow(id); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, [openWindow]);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
@@ -127,6 +154,34 @@ export default function Desktop({ onLogOff }: DesktopProps) {
       <ContactWindow />
       <ProjectsWindow />
       <CmdWindow />
+      <QuizWindow />
+      <RadarWindow />
+      <TimelineWindow />
+      <CertsWindow />
+      <RateCardWindow />
+      <SnippetsWindow />
+      <ShortcutsWindow />
+
+      {/* ── Daily Dev Quote (bottom-right, above taskbar) ── */}
+      <motion.div
+        className="absolute right-3 pointer-events-none select-none"
+        style={{ bottom: 38, maxWidth: 280, zIndex: 6 }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 2, duration: 1 }}
+      >
+        <div
+          className="text-[9px] leading-relaxed text-right px-2 py-1.5"
+          style={{
+            color: 'rgba(255,255,255,0.55)',
+            textShadow: '0 1px 3px rgba(0,0,0,0.6)',
+            fontFamily: 'Tahoma, sans-serif',
+            fontStyle: 'italic',
+          }}
+        >
+          {todayQuote}
+        </div>
+      </motion.div>
 
       <Taskbar onLogOff={onLogOff} />
       <BalloonNotification />

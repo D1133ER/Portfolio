@@ -68,6 +68,13 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
     { id: 'projects',   icon: '📂', label: 'My Projects'   },
     { id: 'contact',    icon: '✉️', label: 'Contact Me'    },
     { id: 'terminal',   icon: '💻', label: 'Command Prompt'},
+    { id: 'quiz',       icon: '🇩🇪', label: 'Deutsch Quiz' },
+    { id: 'radar',      icon: '📊', label: 'Skill Radar'  },
+    { id: 'timeline',   icon: '📅', label: 'Career Timeline'},
+    { id: 'certs',      icon: '🏆', label: 'Credentials'  },
+    { id: 'ratecard',   icon: '💼', label: 'Services'      },
+    { id: 'snippets',   icon: '📝', label: 'Code Snippets'},
+    { id: 'shortcuts',  icon: '⌨️', label: 'Shortcuts'    },
   ];
 
   return (
@@ -77,85 +84,177 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
         {logOffDialog && (
           <motion.div
             className="absolute inset-0 z-[100] flex items-center justify-center"
-            style={{ background: 'rgba(0,0,0,0.45)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.35 }}
+            style={{ backdropFilter: 'blur(6px)', background: 'rgba(0,0,0,0.55)' }}
           >
+            {/* Animated background particles */}
+            {[...Array(12)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute rounded-full pointer-events-none"
+                style={{
+                  width:  8 + (i % 4) * 6,
+                  height: 8 + (i % 4) * 6,
+                  background: logOffDialog === 'logoff' ? `rgba(49,106,197,${0.15 + (i % 3) * 0.12})` : `rgba(180,20,20,${0.15 + (i % 3) * 0.12})`,
+                  left: `${10 + (i * 7) % 80}%`,
+                  top:  `${15 + (i * 11) % 70}%`,
+                }}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: [0, 1.2, 1], opacity: [0, 0.8, 0.4], y: [0, -20 - i * 3] }}
+                transition={{ delay: i * 0.07, duration: 1.2, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
+              />
+            ))}
+
             <motion.div
               key={logOffDialog}
-              className="w-[340px] overflow-hidden"
+              className="w-[380px] overflow-hidden relative"
               style={{
-                background: '#ece9d8',
-                border: '2px solid #0a246a',
-                boxShadow: '6px 6px 20px rgba(0,0,0,0.6)',
+                background: logOffDialog === 'logoff'
+                  ? 'linear-gradient(160deg, #e8f0ff 0%, #dde4f0 60%, #c8d8f5 100%)'
+                  : 'linear-gradient(160deg, #fff0f0 0%, #f5dede 60%, #edd8d8 100%)',
+                border: `2px solid ${logOffDialog === 'logoff' ? '#0a246a' : '#8b0000'}`,
+                boxShadow: logOffDialog === 'logoff'
+                  ? '0 0 0 1px #316ac5, 0 8px 40px rgba(10,36,106,0.55), 0 2px 8px rgba(0,0,0,0.3)'
+                  : '0 0 0 1px #c62828, 0 8px 40px rgba(139,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3)',
               }}
-              initial={{ scale: 0.75, opacity: 0, y: -30 }}
-              animate={{ scale: 1,    opacity: 1, y: 0 }}
-              exit={{    scale: 0.75, opacity: 0, y: -30 }}
-              transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+              initial={{ scale: 0.7, opacity: 0, y: -40, rotateX: 15 }}
+              animate={{ scale: 1,   opacity: 1, y: 0,   rotateX: 0  }}
+              exit={{    scale: 0.7, opacity: 0, y: 40,  rotateX: -10 }}
+              transition={{ type: 'spring', stiffness: 340, damping: 24 }}
             >
+              {/* Shimmer stripe at top */}
+              <motion.div
+                className="absolute top-0 left-0 right-0 h-[3px] pointer-events-none"
+                style={{
+                  background: logOffDialog === 'logoff'
+                    ? 'linear-gradient(90deg, #1244a8, #42a5f5, #1244a8)'
+                    : 'linear-gradient(90deg, #8b0000, #ef5350, #8b0000)',
+                  backgroundSize: '200% 100%',
+                }}
+                animate={{ backgroundPosition: ['0% 0%', '100% 0%', '0% 0%'] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              />
+
               {/* Title bar */}
               <div
-                className="h-[26px] flex items-center gap-2 px-2"
-                style={{ background: 'linear-gradient(180deg, #2c6fca 0%, #1244a8 100%)' }}
+                className="h-[30px] flex items-center gap-2 px-3"
+                style={{
+                  background: logOffDialog === 'logoff'
+                    ? 'linear-gradient(180deg, #3a7fd4 0%, #1244a8 60%, #0a246a 100%)'
+                    : 'linear-gradient(180deg, #e05252 0%, #b71c1c 60%, #8b0000 100%)',
+                }}
               >
                 <div className="flex flex-wrap w-3 h-3 gap-[1px]">
-                  <div className="rounded-[1px] bg-red-400   w-[5px] h-[5px]" />
-                  <div className="rounded-[1px] bg-green-400 w-[5px] h-[5px]" />
-                  <div className="rounded-[1px] bg-blue-400  w-[5px] h-[5px]" />
-                  <div className="rounded-[1px] bg-yellow-300 w-[5px] h-[5px]" />
+                  <div className="rounded-[1px] bg-red-300   w-[5px] h-[5px]" />
+                  <div className="rounded-[1px] bg-green-300 w-[5px] h-[5px]" />
+                  <div className="rounded-[1px] bg-blue-300  w-[5px] h-[5px]" />
+                  <div className="rounded-[1px] bg-yellow-200 w-[5px] h-[5px]" />
                 </div>
                 <GlitchText
                   text={logOffDialog === 'logoff' ? 'Log Off Windows' : 'Turn Off Computer'}
                   duration={900}
-                  className="text-white text-[11px] font-bold"
+                  className="text-white text-[11px] font-bold tracking-wide"
                 />
               </div>
 
               {/* Body */}
-              <div className="px-5 py-5">
-                <div className="flex items-start gap-4 mb-5">
-                  <span className="text-[40px] leading-none flex-shrink-0">
-                    {logOffDialog === 'logoff' ? '🔒' : '🔴'}
-                  </span>
+              <div className="px-6 py-6">
+                {/* Icon + heading row */}
+                <div className="flex items-center gap-4 mb-5">
+                  <motion.div
+                    initial={{ scale: 0, rotate: -20 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: 0.15, type: 'spring', stiffness: 300, damping: 18 }}
+                    className="relative flex-shrink-0"
+                  >
+                    {/* Glow ring behind icon */}
+                    <motion.div
+                      className="absolute inset-0 rounded-full"
+                      style={{
+                        background: logOffDialog === 'logoff' ? 'rgba(49,106,197,0.25)' : 'rgba(198,40,40,0.25)',
+                        filter: 'blur(8px)',
+                      }}
+                      animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
+                      transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+                    <span className="text-[48px] leading-none relative z-10">
+                      {logOffDialog === 'logoff' ? '🔒' : '⚡'}
+                    </span>
+                  </motion.div>
+
                   <div>
-                    <p className="text-[12px] font-bold text-[#0a246a] mb-1">
+                    <motion.p
+                      className="text-[14px] font-bold mb-1"
+                      style={{ color: logOffDialog === 'logoff' ? '#0a246a' : '#7f0000' }}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
                       <GlitchText
                         text={logOffDialog === 'logoff' ? 'Log Off Windows' : 'Turn Off Computer'}
                         duration={1100}
                       />
-                    </p>
-                    <p className="text-[11px] text-[#333] leading-relaxed">
+                    </motion.p>
+                    <motion.p
+                      className="text-[11px] text-[#444] leading-relaxed"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.35 }}
+                    >
                       {logOffDialog === 'logoff'
                         ? 'Are you sure you want to log off? Unsaved changes in open windows will be lost.'
                         : 'Are you sure you want to turn off the computer? All open windows will close.'}
-                    </p>
+                    </motion.p>
                   </div>
                 </div>
+
+                {/* Divider */}
+                <motion.div
+                  className="h-px mb-5"
+                  style={{ background: logOffDialog === 'logoff' ? 'linear-gradient(90deg, transparent, #316ac5, transparent)' : 'linear-gradient(90deg, transparent, #c62828, transparent)' }}
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ delay: 0.3, duration: 0.4 }}
+                />
 
                 {/* Buttons */}
                 <div className="flex justify-center gap-3">
                   <motion.button
-                    className="px-6 py-1.5 text-[11px] border border-[#888] cursor-pointer font-bold"
-                    style={{ background: 'linear-gradient(180deg, #ece9d8 0%, #d4d0c8 100%)', minWidth: 80 }}
+                    className="px-6 py-2 text-[11px] border cursor-pointer font-bold text-white relative overflow-hidden"
+                    style={{
+                      background: logOffDialog === 'logoff'
+                        ? 'linear-gradient(180deg, #3a7fd4 0%, #1244a8 100%)'
+                        : 'linear-gradient(180deg, #e05252 0%, #b71c1c 100%)',
+                      borderColor: logOffDialog === 'logoff' ? '#0a246a' : '#8b0000',
+                      minWidth: 90,
+                      boxShadow: logOffDialog === 'logoff' ? '0 2px 8px rgba(18,68,168,0.4)' : '0 2px 8px rgba(183,28,28,0.4)',
+                    }}
                     onClick={() => {
                       if (logOffDialog === 'logoff') { playLogoffConfirm(); }
                       else                           { playShutdownConfirm(); }
                       setLogOffDialog(null);
                       onLogOff();
                     }}
-                    whileHover={{ filter: 'brightness(1.07)' }}
-                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    whileHover={{ filter: 'brightness(1.15)', scale: 1.03, boxShadow: '0 4px 16px rgba(0,0,0,0.35)' }}
+                    whileTap={{ scale: 0.94 }}
                   >
-                    {logOffDialog === 'logoff' ? 'Log Off' : 'Turn Off'}
+                    {logOffDialog === 'logoff' ? '🔒 Log Off' : '⚡ Turn Off'}
                   </motion.button>
                   <motion.button
-                    className="px-6 py-1.5 text-[11px] border border-[#888] cursor-pointer"
-                    style={{ background: 'linear-gradient(180deg, #ece9d8 0%, #d4d0c8 100%)', minWidth: 80 }}
+                    className="px-6 py-2 text-[11px] border border-[#888] cursor-pointer text-[#333]"
+                    style={{ background: 'linear-gradient(180deg, #ece9d8 0%, #d4d0c8 100%)', minWidth: 90 }}
                     onClick={() => setLogOffDialog(null)}
-                    whileHover={{ filter: 'brightness(1.07)' }}
-                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.48 }}
+                    whileHover={{ filter: 'brightness(1.07)', scale: 1.03 }}
+                    whileTap={{ scale: 0.94 }}
                     autoFocus
                   >
                     Cancel

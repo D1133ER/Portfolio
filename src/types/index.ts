@@ -1,4 +1,6 @@
-export type WindowId = 'about' | 'experience' | 'skills' | 'education' | 'contact' | 'projects' | 'terminal';
+export type WindowId =
+  | 'about' | 'experience' | 'skills' | 'education' | 'contact' | 'projects' | 'terminal'
+  | 'quiz' | 'radar' | 'timeline' | 'certs' | 'ratecard' | 'snippets' | 'shortcuts';
 
 export interface WindowState {
   id: WindowId;
@@ -32,4 +34,33 @@ export interface ProjectData {
   description: string;
   tech: string[];
   icon: string;
+}
+
+export interface GermanWord {
+  de: string;
+  en: string;
+  category: string;
+}
+
+export interface TechPhase {
+  year: number;
+  phase: string;
+  techs: string[];
+  color: string;
+}
+
+export interface CertData {
+  name: string;
+  issuer: string;
+  year: string;
+  icon: string;
+  category: string;
+  color: string;
+}
+
+export interface CodeSnippet {
+  title: string;
+  lang: string;
+  description: string;
+  code: string;
 }

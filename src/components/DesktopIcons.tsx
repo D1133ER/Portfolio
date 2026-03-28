@@ -10,6 +10,13 @@ const desktopIcons: { id: WindowId | '__recycle__'; icon: string; label: string 
   { id: 'projects',   icon: '📂', label: 'My Projects'   },
   { id: 'skills',     icon: '⚙️', label: 'My Skills'     },
   { id: 'terminal',   icon: '💻', label: 'cmd.exe'       },
+  { id: 'quiz',       icon: '🇩🇪', label: 'Deutsch Quiz' },
+  { id: 'radar',      icon: '📊', label: 'Skill Radar'  },
+  { id: 'timeline',   icon: '📅', label: 'Timeline'      },
+  { id: 'certs',      icon: '🏆', label: 'Credentials'  },
+  { id: 'ratecard',   icon: '💼', label: 'Services'      },
+  { id: 'snippets',   icon: '📝', label: 'Code Snippets'},
+  { id: 'shortcuts',  icon: '⌨️', label: 'Shortcuts'    },
   { id: '__recycle__', icon: '🗑️', label: 'Recycle Bin'  },
 ];
 
@@ -33,7 +40,8 @@ export default function DesktopIcons() {
   return (
     // Clicking the desktop container deselects all
     <div
-      className="absolute top-3 left-3 flex flex-col gap-1 z-[5]"
+      className="absolute top-3 left-3 z-[5] flex flex-col flex-wrap gap-1"
+      style={{ maxHeight: 'calc(100vh - 60px)' }}
       onClick={() => setSelected(null)}
     >
       {desktopIcons.map((item, i) => {

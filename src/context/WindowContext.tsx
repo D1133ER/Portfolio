@@ -4,13 +4,20 @@ import React, { createContext, useContext, useReducer, useCallback } from 'react
 import { WindowId, WindowState } from '@/types';
 
 const defaultWindows: WindowState[] = [
-  { id: 'about',      title: 'System Properties',              icon: '🖥️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 80,  y: 40 }, size: { width: 420, height: 420 } },
-  { id: 'experience', title: 'My Experience — C:\\Work History', icon: '📁', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 110, y: 55 }, size: { width: 540, height: 380 } },
-  { id: 'skills',     title: 'My Skills — System Properties',   icon: '⚙️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 130, y: 70 }, size: { width: 420, height: 460 } },
-  { id: 'education',  title: 'Education — Academic Records',    icon: '🎓', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 150, y: 90 }, size: { width: 400, height: 380 } },
-  { id: 'contact',    title: 'New Message',                     icon: '✉️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 100, y: 50 }, size: { width: 510, height: 560 } },
-  { id: 'projects',   title: 'My Projects — File Manager',      icon: '📂', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 120, y: 60 }, size: { width: 520, height: 560 } },
-  { id: 'terminal',   title: 'Command Prompt',                  icon: '💻', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 160, y: 80 }, size: { width: 540, height: 380 } },
+  { id: 'about',      title: 'System Properties',              icon: '🖥️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 80,  y: 40  }, size: { width: 420, height: 420 } },
+  { id: 'experience', title: 'My Experience — C:\\Work History', icon: '📁', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 110, y: 55  }, size: { width: 540, height: 380 } },
+  { id: 'skills',     title: 'My Skills — System Properties',   icon: '⚙️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 130, y: 70  }, size: { width: 420, height: 460 } },
+  { id: 'education',  title: 'Education — Academic Records',    icon: '🎓', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 150, y: 90  }, size: { width: 400, height: 380 } },
+  { id: 'contact',    title: 'New Message',                     icon: '✉️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 100, y: 50  }, size: { width: 510, height: 560 } },
+  { id: 'projects',   title: 'My Projects — File Manager',      icon: '📂', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 120, y: 60  }, size: { width: 520, height: 560 } },
+  { id: 'terminal',   title: 'Command Prompt',                  icon: '💻', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 160, y: 80  }, size: { width: 540, height: 380 } },
+  { id: 'quiz',       title: 'German Quiz — Lernspiel.exe',     icon: '🇩🇪', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 180, y: 60  }, size: { width: 440, height: 420 } },
+  { id: 'radar',      title: 'Skill Radar — sys_stats.exe',     icon: '📊', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 200, y: 70  }, size: { width: 500, height: 500 } },
+  { id: 'timeline',   title: 'Career Timeline — history.log',   icon: '📅', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 90,  y: 50  }, size: { width: 600, height: 460 } },
+  { id: 'certs',      title: 'Credentials Wall — certs.msc',    icon: '🏆', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 140, y: 65  }, size: { width: 520, height: 440 } },
+  { id: 'ratecard',   title: 'Services & Rates — services.exe', icon: '💼', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 110, y: 55  }, size: { width: 480, height: 500 } },
+  { id: 'snippets',   title: 'Code Snippets — notepad++.exe',   icon: '📝', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 170, y: 75  }, size: { width: 580, height: 480 } },
+  { id: 'shortcuts',  title: 'Keyboard Shortcuts — help.exe',   icon: '⌨️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 220, y: 90  }, size: { width: 420, height: 420 } },
 ];
 
 type Action =
