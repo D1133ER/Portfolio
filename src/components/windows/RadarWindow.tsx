@@ -60,7 +60,7 @@ function RadarChart({ skills, color }: { skills: { name: string; level: number }
   }).join(' ');
 
   return (
-    <svg width="320" height="320" viewBox="0 0 320 320">
+    <svg width="320" height="320" viewBox="0 0 320 320" style={{ maxWidth: '100%', height: 'auto' }}>
       {/* Grid rings */}
       {rings.map((pct) => {
         const pts = angles.map((a) => {
@@ -159,9 +159,9 @@ export default function RadarWindow() {
           ))}
         </div>
 
-        <div className="flex gap-4 flex-wrap">
+        <div className="flex gap-4 flex-col sm:flex-row flex-wrap">
           {/* Radar SVG */}
-          <div className="border border-[#b8b5a8] p-2" style={{ background: '#fafaf8' }}>
+          <div className="border border-[#b8b5a8] p-2 self-start mx-auto sm:mx-0" style={{ background: '#fafaf8' }}>
             <RadarChart skills={[...skills]} color={colors[activeGroup]} />
           </div>
 

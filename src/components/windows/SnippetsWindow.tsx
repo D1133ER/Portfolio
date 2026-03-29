@@ -120,8 +120,8 @@ export default function SnippetsWindow() {
     <XPWindow id="snippets" statusText={`📝  ${snippet.title} — ${snippet.lang}`}>
       <div className="flex h-full overflow-hidden" style={{ fontFamily: 'Tahoma, sans-serif' }}>
 
-        {/* Sidebar — file list */}
-        <div className="w-[160px] flex-shrink-0 border-r border-[#b8b5a8] overflow-y-auto"
+        {/* Sidebar — file list (hidden on small screens) */}
+        <div className="hidden sm:flex w-[160px] flex-shrink-0 flex-col border-r border-[#b8b5a8] overflow-y-auto"
           style={{ background: '#252526' }}>
           <div className="text-[9px] font-bold px-3 py-1.5 text-[#bbb] uppercase tracking-wider border-b border-[#3e3e3e]">
             EXPLORER
@@ -147,13 +147,23 @@ export default function SnippetsWindow() {
         </div>
 
         {/* Main editor area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           {/* Tab bar */}
           <div className="flex items-center border-b border-[#3e3e3e]" style={{ background: '#2d2d2d' }}>
-            <div className="px-3 py-1.5 text-[10px] flex items-center gap-1.5"
+            {/* Mobile snippet selector */}
+            <select
+              className="sm:hidden text-[10px] px-1 py-1 bg-[#1e1e1e] text-[#ccc] border-r border-[#3e3e3e] max-w-[120px] cursor-pointer"
+              value={activeIdx}
+              onChange={(e) => { setActiveIdx(Number(e.target.value)); setCopied(false); }}
+            >
+              {codeSnippets.map((s, i) => (
+                <option key={i} value={i}>{s.title}</option>
+              ))}
+            </select>
+            <div className="hidden sm:flex px-3 py-1.5 text-[10px] items-center gap-1.5"
               style={{ background: '#1e1e1e', color: '#ccc', borderRight: '1px solid #3e3e3e' }}>
               <span>{snippet.lang === 'python' ? '🐍' : '⚡'}</span>
-              <span>{snippet.title}.{snippet.lang === 'typescript' ? 'ts' : 'py'}</span>
+              <span className="truncate max-w-[100px]">{snippet.title}.{snippet.lang === 'typescript' ? 'ts' : 'py'}</span>
               <span className="ml-1 text-[#888]">×</span>
             </div>
             <div className="flex-1" />
@@ -179,7 +189,7 @@ export default function SnippetsWindow() {
           </div>
 
           {/* Description bar */}
-          <div className="px-3 py-1.5 text-[10px] border-b border-[#3e3e3e]"
+          <div className="px-3 py-1.5 text-[10px] border-b border-[#3e3e3e] truncate"
             style={{ background: '#2d2d2d', color: '#9cdcfe' }}>
             💡 {snippet.description}
           </div>
@@ -202,14 +212,14 @@ export default function SnippetsWindow() {
                   ))}
                 </div>
               )}
-              <div className="flex-1 overflow-auto">
+              <div className="flex-1 overflow-auto min-w-0">
                 <HighlightedCode code={snippet.code} lang={snippet.lang} />
               </div>
             </div>
           </div>
 
           {/* Status bar */}
-          <div className="flex items-center gap-4 px-3 py-0.5 text-[9px]"
+          <div className="flex items-center gap-4 px-3 py-0.5 text-[9px] flex-shrink-0"
             style={{ background: '#007acc', color: 'white' }}>
             <span>{snippet.lang.toUpperCase()}</span>
             <span>{lines.length} lines</span>

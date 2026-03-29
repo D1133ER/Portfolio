@@ -40,8 +40,8 @@ export default function DesktopIcons() {
   return (
     // Clicking the desktop container deselects all
     <div
-      className="absolute top-3 left-3 z-[5] flex flex-col flex-wrap gap-1"
-      style={{ maxHeight: 'calc(100vh - 60px)' }}
+      className="absolute top-2 left-2 z-[5] flex flex-col flex-wrap gap-1"
+      style={{ maxHeight: 'calc(100dvh - 60px)', maxWidth: 'calc(100vw - 8px)', overflow: 'hidden' }}
       onClick={() => setSelected(null)}
     >
       {desktopIcons.map((item, i) => {
@@ -49,7 +49,7 @@ export default function DesktopIcons() {
         return (
           <motion.div
             key={item.id}
-            className="flex flex-col items-center gap-0.5 cursor-pointer w-[68px] p-1 rounded-sm"
+            className="flex flex-col items-center gap-0.5 cursor-pointer w-[60px] sm:w-[68px] p-1 rounded-sm"
             style={{
               backgroundColor: isSelected ? 'rgba(49,106,197,0.55)' : 'transparent',
               outline: isSelected ? '1px dotted rgba(255,255,255,0.7)' : 'none',
@@ -61,9 +61,10 @@ export default function DesktopIcons() {
             whileTap={{ scale: 0.92 }}
             onClick={(e) => handleClick(item.id, e)}
             onDoubleClick={() => handleDoubleClick(item.id)}
+            onTouchEnd={(e) => { e.preventDefault(); handleDoubleClick(item.id); }}
           >
             <motion.span
-              className="text-[34px] leading-none select-none"
+              className="text-[28px] sm:text-[34px] leading-none select-none"
               whileHover={{ scale: 1.1 }}
             >
               {item.icon}

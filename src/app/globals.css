@@ -30,6 +30,11 @@ html, body {
 }
 ::-webkit-scrollbar-button { display: block; height: 16px; background: #d4d0c8; border: 1px solid #999; }
 
+@media (pointer: coarse) {
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-button { height: 0; display: none; }
+}
+
 .xp-input {
   width: 100%;
   padding: 3px 5px;

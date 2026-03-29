@@ -142,7 +142,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
       {/* Main login area */}
       <div className="flex-1 flex flex-col items-center justify-center gap-5 relative z-[1]">
         <motion.div
-          className="flex flex-col items-center gap-3 px-9 py-5 rounded cursor-pointer min-w-[220px]"
+          className="flex flex-col items-center gap-3 px-6 sm:px-9 py-5 rounded cursor-pointer w-[90vw] max-w-[280px]"
           style={{
             background: 'rgba(255,255,255,0.15)',
             border: '1px solid rgba(255,255,255,0.3)',

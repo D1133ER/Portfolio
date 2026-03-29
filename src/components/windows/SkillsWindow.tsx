@@ -22,7 +22,7 @@ export default function SkillsWindow() {
       <p className="text-[11px] font-bold text-[#0a246a] mb-1.5 pb-1 border-b border-[#c0bdb0]">
         Technical Skills
       </p>
-      <div className="grid grid-cols-2 gap-1.5 mb-1.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-1.5">
         {technicalSkills.map((skill, i) => (
           <motion.div
             key={skill.name}

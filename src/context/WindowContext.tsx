@@ -29,17 +29,21 @@ type Action =
   | { type: 'FOCUS';    id: WindowId }
   | { type: 'MOVE';     id: WindowId; position: { x: number; y: number } }
   | { type: 'RESIZE';   id: WindowId; size: { width: number; height: number } }
+  | { type: 'RESIZE_POSITION'; id: WindowId; position: { x: number; y: number }; size: { width: number; height: number } }
+  | { type: 'MINIMIZE_ALL' }
   | { type: 'CLOSE_ALL' };
 
 let zCounter = 10;
 
 function reducer(state: WindowState[], action: Action): WindowState[] {
   switch (action.type) {
-    case 'OPEN':
+    case 'OPEN': {
       zCounter++;
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
       return state.map((w) =>
-        w.id === action.id ? { ...w, isOpen: true, isMinimized: false, isMaximized: false, zIndex: zCounter } : w
+        w.id === action.id ? { ...w, isOpen: true, isMinimized: false, isMaximized: isMobile, zIndex: zCounter } : w
       );
+    }
     case 'CLOSE':
       return state.map((w) => (w.id === action.id ? { ...w, isOpen: false, isMinimized: false, isMaximized: false } : w));
     case 'MINIMIZE':
@@ -71,6 +75,10 @@ function reducer(state: WindowState[], action: Action): WindowState[] {
       return state.map((w) => (w.id === action.id ? { ...w, position: action.position } : w));
     case 'RESIZE':
       return state.map((w) => (w.id === action.id ? { ...w, size: action.size } : w));
+    case 'RESIZE_POSITION':
+      return state.map((w) => (w.id === action.id ? { ...w, position: action.position, size: action.size } : w));
+    case 'MINIMIZE_ALL':
+      return state.map((w) => (w.isOpen ? { ...w, isMinimized: true } : w));
     case 'CLOSE_ALL':
       return state.map((w) => ({ ...w, isOpen: false, isMinimized: false, isMaximized: false }));
     default:
@@ -88,6 +96,8 @@ interface WindowContextType {
   focusWindow:   (id: WindowId) => void;
   moveWindow:    (id: WindowId, position: { x: number; y: number }) => void;
   resizeWindow:  (id: WindowId, size: { width: number; height: number }) => void;
+  resizePositionWindow: (id: WindowId, position: { x: number; y: number }, size: { width: number; height: number }) => void;
+  minimizeAllWindows: () => void;
   getWindow:     (id: WindowId) => WindowState | undefined;
 }
 
@@ -104,10 +114,12 @@ export function WindowProvider({ children }: { children: React.ReactNode }) {
   const focusWindow    = useCallback((id: WindowId) => dispatch({ type: 'FOCUS',    id }), []);
   const moveWindow     = useCallback((id: WindowId, position: { x: number; y: number }) => dispatch({ type: 'MOVE', id, position }), []);
   const resizeWindow   = useCallback((id: WindowId, size: { width: number; height: number }) => dispatch({ type: 'RESIZE', id, size }), []);
+  const resizePositionWindow = useCallback((id: WindowId, position: { x: number; y: number }, size: { width: number; height: number }) => dispatch({ type: 'RESIZE_POSITION', id, position, size }), []);
+  const minimizeAllWindows = useCallback(() => dispatch({ type: 'MINIMIZE_ALL' }), []);
   const getWindow      = useCallback((id: WindowId) => windows.find((w) => w.id === id), [windows]);
 
   return (
-    <WindowContext.Provider value={{ windows, openWindow, closeWindow, minimizeWindow, maximizeWindow, restoreWindow, focusWindow, moveWindow, resizeWindow, getWindow }}>
+    <WindowContext.Provider value={{ windows, openWindow, closeWindow, minimizeWindow, maximizeWindow, restoreWindow, focusWindow, moveWindow, resizeWindow, resizePositionWindow, minimizeAllWindows, getWindow }}>
       {children}
     </WindowContext.Provider>
   );

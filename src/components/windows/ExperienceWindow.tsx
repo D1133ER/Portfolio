@@ -36,16 +36,17 @@ export default function ExperienceWindow() {
       toolbar={toolbar}
       noPadding
     >
-      <div className="flex absolute inset-0">
+      <div className="flex flex-col sm:flex-row absolute inset-0">
         {/* Sidebar */}
-        <div className="w-[140px] bg-[#d4d0c8] border-r border-[#aaa] p-1.5 text-[10px] shrink-0 overflow-y-auto">
+        <div className="w-full sm:w-[140px] bg-[#d4d0c8] border-b sm:border-b-0 sm:border-r border-[#aaa] p-1.5 text-[10px] shrink-0 overflow-y-auto" style={{ maxHeight: '120px' }}>
           <h4 className="text-[10px] font-bold text-[#0a246a] mb-2 px-1 pb-1 border-b border-[#bbb]">
             📂 Positions
           </h4>
+          <div className="flex flex-row flex-wrap sm:flex-col gap-0.5">
           {jobKeys.map((key) => (
             <motion.div
               key={key}
-              className={`flex items-start gap-1 py-1 px-1.5 cursor-pointer rounded-sm text-[10px] mb-0.5 leading-tight ${
+              className={`flex items-start gap-1 py-1 px-1.5 cursor-pointer rounded-sm text-[10px] leading-tight ${
                 selected === key
                   ? 'bg-[#316ac5] text-white'
                   : 'text-blue-800 hover:bg-[#c0bdb0]'
@@ -57,6 +58,7 @@ export default function ExperienceWindow() {
               {jobLabels[key]}
             </motion.div>
           ))}
+          </div>
         </div>
 
         {/* Detail panel */}

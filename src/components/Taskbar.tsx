@@ -12,12 +12,13 @@ interface TaskbarProps {
 }
 
 export default function Taskbar({ onLogOff }: TaskbarProps) {
-  const { windows, openWindow, focusWindow, minimizeWindow } = useWindows();
+  const { windows, openWindow, focusWindow, minimizeWindow, maximizeWindow, restoreWindow, closeWindow, minimizeAllWindows } = useWindows();
   const [time, setTime]       = useState('');
   const [date, setDate]       = useState('');
   const [startOpen, setStartOpen] = useState(false);
   const [logOffDialog, setLogOffDialog] = useState<'logoff' | 'shutdown' | null>(null);
   const [muted, setMutedState] = useState(false);
+  const [taskbarMenu, setTaskbarMenu] = useState<{ id: WindowId; x: number; y: number } | null>(null);
 
   const toggleMute = () => {
     const next = !muted;
@@ -110,7 +111,7 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
 
             <motion.div
               key={logOffDialog}
-              className="w-[380px] overflow-hidden relative"
+              className="w-[calc(100vw-2rem)] max-w-[380px] overflow-hidden relative"
               style={{
                 background: logOffDialog === 'logoff'
                   ? 'linear-gradient(160deg, #e8f0ff 0%, #dde4f0 60%, #c8d8f5 100%)'
@@ -276,8 +277,8 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             />
             <motion.div
-              className="absolute bottom-[30px] left-0 w-[280px] z-[49] rounded-t-lg overflow-hidden"
-              style={{ background: '#ece9d8', border: '2px solid #0a246a', boxShadow: '4px -4px 18px rgba(0,0,0,0.5)' }}
+              className="absolute bottom-[30px] left-0 z-[49] rounded-t-lg overflow-hidden"
+              style={{ background: '#ece9d8', border: '2px solid #0a246a', boxShadow: '4px -4px 18px rgba(0,0,0,0.5)', width: 'min(280px, 100vw)' }}
               initial={{ y: 20, opacity: 0, scaleY: 0.8 }}
               animate={{ y: 0,  opacity: 1, scaleY: 1   }}
               exit={{    y: 20, opacity: 0, scaleY: 0.8 }}
@@ -389,15 +390,32 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
         {/* Separator */}
         <div className="h-5 w-px bg-white/20 mx-1 flex-shrink-0" />
 
+        {/* Quick Launch */}
+        <div className="flex items-center gap-0.5 flex-shrink-0 pr-1">
+          <motion.button
+            className="w-[22px] h-[22px] flex items-center justify-center rounded-sm cursor-pointer text-[13px]"
+            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}
+            title="Show Desktop (Ctrl+D)"
+            onClick={() => minimizeAllWindows()}
+            whileHover={{ background: 'rgba(255,255,255,0.25)' }}
+            whileTap={{ scale: 0.88 }}
+          >
+            🖥️
+          </motion.button>
+        </div>
+
+        {/* Quick Launch separator */}
+        <div className="h-5 w-px bg-white/20 mx-1 flex-shrink-0" />
+
         {/* Open window buttons */}
-        <div className="flex gap-0.5 flex-1 overflow-hidden min-w-0">
+        <div className="flex gap-0.5 flex-1 overflow-hidden min-w-0" onClick={() => setTaskbarMenu(null)}>
           <AnimatePresence>
             {openWindowsList.map((w) => {
               const isActive = w.id === activeId && !w.isMinimized;
               return (
                 <motion.button
                   key={w.id}
-                  className="h-[22px] flex items-center gap-1 rounded-sm px-2 cursor-pointer text-white text-[10px] whitespace-nowrap max-w-[140px] min-w-[80px] overflow-hidden"
+                  className="h-[22px] flex items-center gap-1 rounded-sm px-1.5 cursor-pointer text-white text-[10px] whitespace-nowrap max-w-[140px] min-w-[50px] overflow-hidden"
                   style={{
                     background: isActive
                       ? 'rgba(0,0,0,0.35)'
@@ -407,7 +425,8 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
                     border: isActive ? '1px inset rgba(0,0,0,0.4)' : '1px solid rgba(255,255,255,0.2)',
                     boxShadow: isActive ? 'inset 1px 1px 3px rgba(0,0,0,0.4)' : 'none',
                   }}
-                  onClick={() => handleTaskbarClick(w.id)}
+                  onClick={(e) => { e.stopPropagation(); setTaskbarMenu(null); handleTaskbarClick(w.id); }}
+                  onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setTaskbarMenu({ id: w.id, x: e.clientX, y: e.clientY }); }}
                   initial={{ width: 0, opacity: 0 }}
                   animate={{ width: 'auto', opacity: 1 }}
                   exit={{ width: 0, opacity: 0 }}
@@ -448,6 +467,58 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
           </div>
         </div>
       </motion.div>
+
+      {/* ── Taskbar button right-click context menu ── */}
+      <AnimatePresence>
+        {taskbarMenu && windows.find((win) => win.id === taskbarMenu.id) && (() => {
+          const w = windows.find((win) => win.id === taskbarMenu.id)!;
+          const items: { label: string; action: () => void; disabled?: boolean }[] = [
+            { label: 'Restore',  action: () => { restoreWindow(w.id);  setTaskbarMenu(null); }, disabled: !w.isMinimized && !w.isMaximized },
+            { label: 'Minimize', action: () => { minimizeWindow(w.id); setTaskbarMenu(null); }, disabled: w.isMinimized },
+            { label: 'Maximize', action: () => { maximizeWindow(w.id); setTaskbarMenu(null); }, disabled: w.isMaximized },
+            { label: '──', action: () => {}, disabled: true },
+            { label: 'Close',    action: () => { closeWindow(w.id);    setTaskbarMenu(null); } },
+          ];
+          return (
+            <motion.div
+              key="taskbar-ctx"
+              className="absolute z-[61] min-w-[140px]"
+              style={{
+                left: Math.min(taskbarMenu.x, window.innerWidth - 148),
+                top: Math.max(4, taskbarMenu.y - items.length * 24 - 8),
+                background: '#ece9d8',
+                border: '1px solid #888',
+                boxShadow: '3px 3px 10px rgba(0,0,0,0.45)',
+                fontFamily: 'Tahoma, sans-serif',
+              }}
+              initial={{ opacity: 0, scale: 0.92, y: 4 }}
+              animate={{ opacity: 1, scale: 1,    y: 0 }}
+              exit={{    opacity: 0, scale: 0.92, y: 4 }}
+              transition={{ duration: 0.12 }}
+            >
+              {/* backdrop */}
+              <div
+                className="fixed inset-0 -z-10"
+                onClick={() => setTaskbarMenu(null)}
+                onContextMenu={(e) => { e.preventDefault(); setTaskbarMenu(null); }}
+              />
+              {items.map((item, i) =>
+                item.label.startsWith('─') ? (
+                  <div key={i} className="h-px bg-[#b0ada0] mx-1 my-0.5" />
+                ) : (
+                  <div
+                    key={i}
+                    className={`px-3 py-1 text-[11px] ${item.disabled ? 'text-[#aaa] cursor-default' : 'cursor-pointer hover:bg-[#316ac5] hover:text-white'}`}
+                    onClick={(e) => { e.stopPropagation(); if (!item.disabled) item.action(); }}
+                  >
+                    {item.label}
+                  </div>
+                )
+              )}
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
     </>
   );
 }

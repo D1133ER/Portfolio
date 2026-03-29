@@ -27,7 +27,7 @@ export default function ProjectsWindow() {
       statusText={`${projects.length} objects · Local Disk (C:)`}
       toolbar={addressBar}
     >
-      <div className="grid grid-cols-2 gap-4 py-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-1">
         {projects.map((project, i) => (
           <motion.div
             key={project.name}

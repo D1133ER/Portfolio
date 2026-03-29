@@ -58,7 +58,7 @@ export default function CertsWindow() {
         </div>
 
         {/* Grid of cert cards */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           <AnimatePresence mode="popLayout">
             {filtered.map((cert, i) => {
               const isFlipped = flipped.has(i);

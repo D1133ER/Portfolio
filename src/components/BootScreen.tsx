@@ -87,7 +87,7 @@ export default function BootScreen({ onComplete }: BootScreenProps) {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
           >
-            <span className="text-white text-[28px] tracking-wide">
+            <span className="text-white text-[22px] sm:text-[28px] tracking-wide">
               Microsoft{' '}
               <span className="text-orange-400 italic font-bold">Windows XP</span>
             </span>

@@ -10,6 +10,7 @@ import DesktopIcons from './DesktopIcons';
 import Taskbar from './Taskbar';
 import BalloonNotification from './BalloonNotification';
 import Screensaver from './Screensaver';
+import AltTabSwitcher from './AltTabSwitcher';
 import AboutWindow from './windows/AboutWindow';
 import ExperienceWindow from './windows/ExperienceWindow';
 import SkillsWindow from './windows/SkillsWindow';
@@ -41,11 +42,23 @@ interface DesktopProps {
 }
 
 export default function Desktop({ onLogOff }: DesktopProps) {
-  const { openWindow } = useWindows();
+  const { openWindow, closeWindow, minimizeAllWindows, windows } = useWindows();
   const [ctxMenu, setCtxMenu] = useState<CtxMenu>(null);
 
-  // Daily quote — rotates by day-of-year
-  const todayQuote = devQuotes[Math.floor(Date.now() / 86_400_000) % devQuotes.length];
+  // Auto-rotating quote — changes every 15 seconds
+  const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Date.now() / 86_400_000) % devQuotes.length);
+  const [quoteVisible, setQuoteVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setQuoteVisible(false);
+      setTimeout(() => {
+        setQuoteIndex((prev) => (prev + 1) % devQuotes.length);
+        setQuoteVisible(true);
+      }, 500);
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Auto-open the About window when the desktop first loads + play startup chime
   useEffect(() => {
@@ -62,13 +75,29 @@ export default function Desktop({ onLogOff }: DesktopProps) {
       l: 'timeline', g: 'certs', w: 'ratecard', i: 'snippets', k: 'shortcuts',
     };
     const handler = (ev: KeyboardEvent) => {
-      if (!ev.ctrlKey || !ev.altKey) return;
-      const id = map[ev.key.toLowerCase()];
-      if (id) { ev.preventDefault(); openWindow(id); }
+      if (ev.ctrlKey && ev.altKey) {
+        const id = map[ev.key.toLowerCase()];
+        if (id) { ev.preventDefault(); openWindow(id); }
+        return;
+      }
+      // Alt+F4 — close the topmost active window
+      if (ev.altKey && ev.key === 'F4') {
+        ev.preventDefault();
+        const active = windows
+          .filter((w) => w.isOpen && !w.isMinimized)
+          .sort((a, b) => b.zIndex - a.zIndex)[0];
+        if (active) closeWindow(active.id);
+        return;
+      }
+      // Ctrl+D — show desktop (minimize all)
+      if (ev.ctrlKey && ev.key === 'd') {
+        ev.preventDefault();
+        minimizeAllWindows();
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [openWindow]);
+  }, [openWindow, closeWindow, minimizeAllWindows, windows]);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -162,30 +191,55 @@ export default function Desktop({ onLogOff }: DesktopProps) {
       <SnippetsWindow />
       <ShortcutsWindow />
 
-      {/* ── Daily Dev Quote (bottom-right, above taskbar) ── */}
+      {/* ── Auto-rotating Dev Quote (bottom-center, above taskbar) ── */}
       <motion.div
-        className="absolute right-3 pointer-events-none select-none"
-        style={{ bottom: 38, maxWidth: 280, zIndex: 6 }}
+        className="absolute left-1/2 -translate-x-1/2 pointer-events-none select-none"
+        style={{ bottom: 42, zIndex: 6, width: 'min(480px, 90vw)' }}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 2, duration: 1 }}
       >
-        <div
-          className="text-[9px] leading-relaxed text-right px-2 py-1.5"
-          style={{
-            color: 'rgba(255,255,255,0.55)',
-            textShadow: '0 1px 3px rgba(0,0,0,0.6)',
-            fontFamily: 'Tahoma, sans-serif',
-            fontStyle: 'italic',
-          }}
+        <motion.div
+          animate={{ opacity: quoteVisible ? 1 : 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center"
         >
-          {todayQuote}
-        </div>
+          <div
+            className="inline-block text-center w-full px-3 py-2 rounded"
+            style={{
+              background: 'rgba(0,0,0,0.45)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              backdropFilter: 'blur(4px)',
+              fontFamily: 'Tahoma, sans-serif',
+            }}
+          >
+            <div
+              className="text-[11px] leading-relaxed italic"
+              style={{ color: 'rgba(255,255,230,0.92)', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
+            >
+              {devQuotes[quoteIndex]}
+            </div>
+            <div className="mt-1 flex items-center justify-center gap-1">
+              {devQuotes.map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-full transition-all duration-500"
+                  style={{
+                    width: i === quoteIndex ? 14 : 5,
+                    height: 5,
+                    background: i === quoteIndex ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </motion.div>
       </motion.div>
 
       <Taskbar onLogOff={onLogOff} />
       <BalloonNotification />
       <Screensaver />
+      <AltTabSwitcher />
 
       {/* ── Right-click context menu ── */}
       <AnimatePresence>
