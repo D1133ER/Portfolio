@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useWindows } from '@/context/WindowContext';
 import { WindowId } from '@/types';
 
@@ -56,6 +56,42 @@ export default function DesktopIcons() {
   const { openWindow, recycledIds, restoreFromRecycle, emptyRecycleBin } = useWindows();
   const [selected, setSelected] = useState<string | null>(null);
   const [showRecycleBin, setShowRecycleBin] = useState(false);
+  const [recycleBinPos, setRecycleBinPos] = useState<{ x: number; y: number } | null>(null);
+  const recycleDragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
+  const recycleDialogRef = useRef<HTMLDivElement>(null);
+  const recycleRafRef = useRef(0);
+
+  const handleRecycleDragStart = useCallback((clientX: number, clientY: number) => {
+    const el = recycleDialogRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const pos = recycleBinPos ?? { x: rect.left, y: rect.top };
+    recycleDragRef.current = { startX: clientX, startY: clientY, origX: pos.x, origY: pos.y };
+
+    const onMove = (cx: number, cy: number) => {
+      if (!recycleDragRef.current) return;
+      cancelAnimationFrame(recycleRafRef.current);
+      recycleRafRef.current = requestAnimationFrame(() => {
+        if (!recycleDragRef.current) return;
+        const nx = recycleDragRef.current.origX + cx - recycleDragRef.current.startX;
+        const ny = Math.max(0, recycleDragRef.current.origY + cy - recycleDragRef.current.startY);
+        setRecycleBinPos({ x: nx, y: ny });
+      });
+    };
+    const onMouseMove = (ev: MouseEvent) => onMove(ev.clientX, ev.clientY);
+    const onTouchMove = (ev: TouchEvent) => { ev.preventDefault(); onMove(ev.touches[0].clientX, ev.touches[0].clientY); };
+    const onUp = () => {
+      recycleDragRef.current = null;
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onUp);
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onUp);
+  }, [recycleBinPos]);
 
   const handleClick = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -64,6 +100,7 @@ export default function DesktopIcons() {
 
   const handleDoubleClick = useCallback((id: string) => {
     if (id === '__recycle__') {
+      setRecycleBinPos(null);
       setShowRecycleBin(true);
       return;
     }
@@ -88,9 +125,9 @@ export default function DesktopIcons() {
               backgroundColor: isSelected ? 'rgba(49,106,197,0.55)' : 'transparent',
               outline: isSelected ? '1px dotted rgba(255,255,255,0.7)' : 'none',
             }}
-            initial={{ opacity: 0, x: -30, scale: 0.5 }}
-            animate={{ opacity: 1, x: 0,   scale: 1   }}
-            transition={{ delay: i * 0.08, type: 'spring', stiffness: 200, damping: 15 }}
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1   }}
+            transition={{ delay: i * 0.04, duration: 0.2, ease: 'easeOut' }}
             whileHover={{ backgroundColor: isSelected ? 'rgba(49,106,197,0.55)' : 'rgba(49,106,197,0.3)' }}
             whileTap={{ scale: 0.92 }}
             onClick={(e) => handleClick(item.id, e)}
@@ -131,10 +168,12 @@ export default function DesktopIcons() {
               onClick={() => setShowRecycleBin(false)}
             />
             <motion.div
+              ref={recycleDialogRef}
               className="fixed z-[96] flex flex-col"
               style={{
-                top: '50%', left: '50%',
-                transform: 'translate(-50%, -50%)',
+                ...(recycleBinPos
+                  ? { top: recycleBinPos.y, left: recycleBinPos.x }
+                  : { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }),
                 width: 'min(340px, 95vw)',
                 background: '#ece9d8',
                 border: '2px solid #0a246a',
@@ -147,10 +186,12 @@ export default function DesktopIcons() {
               transition={{ type: 'spring', stiffness: 400, damping: 28 }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Title bar */}
+              {/* Title bar — draggable */}
               <div
-                className="h-[26px] flex items-center justify-between px-2 flex-shrink-0"
+                className="h-[26px] flex items-center justify-between px-2 flex-shrink-0 cursor-move select-none"
                 style={{ background: 'linear-gradient(180deg, #2c6fca 0%, #1244a8 100%)' }}
+                onMouseDown={(e) => { e.preventDefault(); handleRecycleDragStart(e.clientX, e.clientY); }}
+                onTouchStart={(e) => { e.preventDefault(); handleRecycleDragStart(e.touches[0].clientX, e.touches[0].clientY); }}
               >
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm">🗑️</span>

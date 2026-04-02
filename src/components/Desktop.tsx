@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, memo } from 'react';
 import dynamic from 'next/dynamic';
 import { useWindows } from '@/context/WindowContext';
 import { playStartupChime } from '@/utils/sounds';
@@ -53,6 +53,69 @@ type WallpaperId = typeof WALLPAPERS[number]['id'];
 
 type CtxMenu = { x: number; y: number } | null;
 
+/** Isolated quote carousel — re-renders every 15s without touching Desktop */
+const QuoteCarousel = memo(function QuoteCarousel() {
+  const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Date.now() / 86_400_000) % devQuotes.length);
+  const [quoteVisible, setQuoteVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setQuoteVisible(false);
+      setTimeout(() => {
+        setQuoteIndex((prev) => (prev + 1) % devQuotes.length);
+        setQuoteVisible(true);
+      }, 500);
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <motion.div
+      className="absolute left-1/2 -translate-x-1/2 pointer-events-none select-none"
+      style={{ bottom: 42, zIndex: 6, width: 'min(480px, 90vw)' }}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 2, duration: 1 }}
+    >
+      <motion.div
+        animate={{ opacity: quoteVisible ? 1 : 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-center"
+      >
+        <div
+          className="inline-block text-center w-full px-3 py-2 rounded"
+          style={{
+            background: 'rgba(0,0,0,0.45)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            backdropFilter: 'blur(4px)',
+            fontFamily: 'Tahoma, sans-serif',
+          }}
+        >
+          <div
+            className="text-[11px] leading-relaxed italic"
+            style={{ color: 'rgba(255,255,230,0.92)', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
+          >
+            {devQuotes[quoteIndex]}
+          </div>
+          <div className="mt-1 flex items-center justify-center gap-1">
+            {devQuotes.map((_, i) => (
+              <div
+                key={i}
+                className="rounded-full transition-all duration-500"
+                style={{
+                  width: i === quoteIndex ? 14 : 5,
+                  height: 5,
+                  background: i === quoteIndex ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+});
+
 interface DesktopProps {
   onLogOff: () => void;
 }
@@ -89,21 +152,6 @@ export default function Desktop({ onLogOff }: DesktopProps) {
       });
     }
   }, [windows]);
-
-  // Auto-rotating quote — changes every 15 seconds
-  const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Date.now() / 86_400_000) % devQuotes.length);
-  const [quoteVisible, setQuoteVisible] = useState(true);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setQuoteVisible(false);
-      setTimeout(() => {
-        setQuoteIndex((prev) => (prev + 1) % devQuotes.length);
-        setQuoteVisible(true);
-      }, 500);
-    }, 15000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Auto-open the About window when the desktop first loads + play startup chime
   useEffect(() => {
@@ -191,6 +239,7 @@ export default function Desktop({ onLogOff }: DesktopProps) {
           style={{
             top:     `${c.top}%`,
             opacity: c.opacity,
+            willChange: 'transform',
             animation: `float-cloud ${c.duration}s linear ${c.delay}s infinite`,
           }}
         >
@@ -242,50 +291,7 @@ export default function Desktop({ onLogOff }: DesktopProps) {
       {mountedWindows.has('notepad') && <NotepadWindow />}
       {mountedWindows.has('taskmanager') && <TaskManagerWindow />}
 
-      {/* ── Auto-rotating Dev Quote (bottom-center, above taskbar) ── */}
-      <motion.div
-        className="absolute left-1/2 -translate-x-1/2 pointer-events-none select-none"
-        style={{ bottom: 42, zIndex: 6, width: 'min(480px, 90vw)' }}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 2, duration: 1 }}
-      >
-        <motion.div
-          animate={{ opacity: quoteVisible ? 1 : 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center"
-        >
-          <div
-            className="inline-block text-center w-full px-3 py-2 rounded"
-            style={{
-              background: 'rgba(0,0,0,0.45)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              backdropFilter: 'blur(4px)',
-              fontFamily: 'Tahoma, sans-serif',
-            }}
-          >
-            <div
-              className="text-[11px] leading-relaxed italic"
-              style={{ color: 'rgba(255,255,230,0.92)', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}
-            >
-              {devQuotes[quoteIndex]}
-            </div>
-            <div className="mt-1 flex items-center justify-center gap-1">
-              {devQuotes.map((_, i) => (
-                <div
-                  key={i}
-                  className="rounded-full transition-all duration-500"
-                  style={{
-                    width: i === quoteIndex ? 14 : 5,
-                    height: 5,
-                    background: i === quoteIndex ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      </motion.div>
+      <QuoteCarousel />
 
       <Taskbar onLogOff={onLogOff} />
       <BalloonNotification />

@@ -41,6 +41,7 @@ export default function XPWindow({
   const dragRef  = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
   const resizeRef = useRef<{ startX: number; startY: number; origW: number; origH: number; origX: number; origY: number; dir: string } | null>(null);
   const windowRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef(0);
 
   const win = getWindow(id);
 
@@ -75,12 +76,17 @@ export default function XPWindow({
 
     const onMove = (ev: MouseEvent) => {
       if (!dragRef.current) return;
-      const nx = Math.max(0, Math.min(dragRef.current.origX + ev.clientX - dragRef.current.startX, parent.width  - 60));
-      const ny = Math.max(0, Math.min(dragRef.current.origY + ev.clientY - dragRef.current.startY, parent.height - 30));
-      moveWindow(id, { x: nx, y: ny });
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        if (!dragRef.current) return;
+        const nx = Math.max(0, Math.min(dragRef.current.origX + ev.clientX - dragRef.current.startX, parent.width  - 60));
+        const ny = Math.max(0, Math.min(dragRef.current.origY + ev.clientY - dragRef.current.startY, parent.height - 30));
+        moveWindow(id, { x: nx, y: ny });
+      });
     };
     const onUp = () => {
       dragRef.current = null;
+      cancelAnimationFrame(rafRef.current);
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
     };
@@ -96,18 +102,23 @@ export default function XPWindow({
 
     const onMove = (ev: MouseEvent) => {
       if (!resizeRef.current) return;
-      const { startX, startY, origW, origH, origX, origY, dir: d } = resizeRef.current;
-      const dx = ev.clientX - startX;
-      const dy = ev.clientY - startY;
-      let newW = origW, newH = origH, newX = origX, newY = origY;
-      if (d.includes('e')) newW = Math.max(260, origW + dx);
-      if (d.includes('s')) newH = Math.max(160, origH + dy);
-      if (d.includes('w')) { newW = Math.max(260, origW - dx); newX = origX + (origW - newW); }
-      if (d.includes('n')) { newH = Math.max(160, origH - dy); newY = origY + (origH - newH); }
-      resizePositionWindow(id, { x: newX, y: newY }, { width: newW, height: newH });
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        if (!resizeRef.current) return;
+        const { startX, startY, origW, origH, origX, origY, dir: d } = resizeRef.current;
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        let newW = origW, newH = origH, newX = origX, newY = origY;
+        if (d.includes('e')) newW = Math.max(260, origW + dx);
+        if (d.includes('s')) newH = Math.max(160, origH + dy);
+        if (d.includes('w')) { newW = Math.max(260, origW - dx); newX = origX + (origW - newW); }
+        if (d.includes('n')) { newH = Math.max(160, origH - dy); newY = origY + (origH - newH); }
+        resizePositionWindow(id, { x: newX, y: newY }, { width: newW, height: newH });
+      });
     };
     const onUp = () => {
       resizeRef.current = null;
+      cancelAnimationFrame(rafRef.current);
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
     };
@@ -155,13 +166,19 @@ export default function XPWindow({
     dragRef.current = { startX: touch.clientX, startY: touch.clientY, origX: win.position.x, origY: win.position.y };
     const onMove = (ev: TouchEvent) => {
       if (!dragRef.current) return;
-      const t = ev.touches[0];
-      const nx = Math.max(0, Math.min(dragRef.current.origX + t.clientX - dragRef.current.startX, parent.width  - 60));
-      const ny = Math.max(0, Math.min(dragRef.current.origY + t.clientY - dragRef.current.startY, parent.height - 30));
-      moveWindow(id, { x: nx, y: ny });
+      ev.preventDefault();
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        if (!dragRef.current) return;
+        const t = ev.touches[0];
+        const nx = Math.max(0, Math.min(dragRef.current.origX + t.clientX - dragRef.current.startX, parent.width  - 60));
+        const ny = Math.max(0, Math.min(dragRef.current.origY + t.clientY - dragRef.current.startY, parent.height - 30));
+        moveWindow(id, { x: nx, y: ny });
+      });
     };
     const onUp = () => {
       dragRef.current = null;
+      cancelAnimationFrame(rafRef.current);
       document.removeEventListener('touchmove', onMove);
       document.removeEventListener('touchend', onUp);
     };

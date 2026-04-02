@@ -146,6 +146,8 @@ const WindowContext = createContext<WindowContextType | null>(null);
 export function WindowProvider({ children }: { children: React.ReactNode }) {
   const [windows, dispatch] = useReducer(reducer, defaultWindows);
   const [recycledIds, setRecycledIds] = React.useState<WindowId[]>([]);
+  const windowsRef = useRef(windows);
+  windowsRef.current = windows;
 
   // Hydrate persisted state after mount to avoid SSR mismatch
   const isInitialMount = useRef(true);
@@ -170,7 +172,7 @@ export function WindowProvider({ children }: { children: React.ReactNode }) {
     setRecycledIds((prev) => prev.filter((r) => r !== id));
   }, []);
   const closeWindow    = useCallback((id: WindowId) => {
-    const isCurrentlyOpen = windows.find((w) => w.id === id)?.isOpen ?? false;
+    const isCurrentlyOpen = windowsRef.current.find((w) => w.id === id)?.isOpen ?? false;
     dispatch({ type: 'CLOSE', id });
     if (isCurrentlyOpen) {
       setRecycledIds((prev) => {
@@ -178,7 +180,7 @@ export function WindowProvider({ children }: { children: React.ReactNode }) {
         return [...next, id].slice(-10);
       });
     }
-  }, [windows]);
+  }, []);
   const restoreFromRecycle = useCallback((id: WindowId) => {
     dispatch({ type: 'OPEN', id });
     setRecycledIds((prev) => prev.filter((r) => r !== id));

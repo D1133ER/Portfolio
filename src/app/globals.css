@@ -78,3 +78,12 @@ html, body {
   background: #316ac5;
   color: #fff;
 }
+
+/* Respect reduced-motion preferences — disables heavy animations for low-end / accessible users */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
