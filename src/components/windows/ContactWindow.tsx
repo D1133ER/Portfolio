@@ -7,17 +7,43 @@ import XPWindow from '../XPWindow';
 export default function ContactWindow() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
-  const [errors, setErrors] = useState({ name: false, email: false });
+  const [errors, setErrors] = useState({ name: false, email: false, message: false });
+  const [sending, setSending] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const nameErr = !formData.name.trim();
     const emailErr = !formData.email.trim() || !/^[^@]+@[^@]+\.[^@]+$/.test(formData.email);
-    setErrors({ name: nameErr, email: emailErr });
-    if (nameErr || emailErr) return;
-    setShowSuccess(true);
-    setFormData({ name: '', email: '', message: '' });
-    setErrors({ name: false, email: false });
-    setTimeout(() => setShowSuccess(false), 4000);
+    const messageErr = formData.message.trim().length < 10;
+    setErrors({ name: nameErr, email: emailErr, message: messageErr });
+    setErrorMsg('');
+    if (nameErr || emailErr || messageErr) return;
+
+    setSending(true);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          message: formData.message.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMsg(data.error || 'Failed to send. Please try again.');
+        return;
+      }
+      setShowSuccess(true);
+      setFormData({ name: '', email: '', message: '' });
+      setErrors({ name: false, email: false, message: false });
+      setTimeout(() => setShowSuccess(false), 4000);
+    } catch {
+      setErrorMsg('Network error. Please try again.');
+    } finally {
+      setSending(false);
+    }
   };
 
   const toolbar = (
@@ -40,18 +66,18 @@ export default function ContactWindow() {
           <span className="text-[9px]">Send</span>
         </button>
         <div className="h-8 w-px bg-[#b0ada0] mx-1" />
-        <button className="flex flex-col items-center gap-0.5 px-2 py-0.5 hover:bg-[#d4d0c8] rounded-sm">
+        <button disabled title="Not available" className="flex flex-col items-center gap-0.5 px-2 py-0.5 rounded-sm opacity-40 cursor-not-allowed">
           <span className="text-base leading-none">📎</span>
           <span className="text-[9px]">Attach</span>
         </button>
-        <button className="flex flex-col items-center gap-0.5 px-2 py-0.5 hover:bg-[#d4d0c8] rounded-sm">
+        <button disabled title="Not available" className="flex flex-col items-center gap-0.5 px-2 py-0.5 rounded-sm opacity-40 cursor-not-allowed">
           <span className="text-base leading-none">👤</span>
           <span className="text-[9px]">Address</span>
         </button>
       </div>
       <div className="flex gap-0.5 mr-2">
-        <button className="w-7 h-7 flex items-center justify-center hover:bg-[#d4d0c8] rounded-sm text-sm">🔗</button>
-        <button className="w-7 h-7 flex items-center justify-center hover:bg-[#d4d0c8] rounded-sm text-sm">👥</button>
+        <button disabled title="Not available" className="w-7 h-7 flex items-center justify-center rounded-sm text-sm opacity-40 cursor-not-allowed">🔗</button>
+        <button disabled title="Not available" className="w-7 h-7 flex items-center justify-center rounded-sm text-sm opacity-40 cursor-not-allowed">👥</button>
       </div>
     </div>
   );
@@ -138,13 +164,23 @@ export default function ContactWindow() {
             Message
           </label>
           <textarea
-            className="w-full border border-[#aaa] px-2 py-1.5 text-[10px] bg-white outline-none focus:border-[#0a246a] resize-none"
+            className={`w-full border px-2 py-1.5 text-[10px] bg-white outline-none focus:border-[#0a246a] resize-none ${errors.message ? 'border-red-500' : 'border-[#aaa]'}`}
             rows={6}
             placeholder="Type your message here..."
             value={formData.message}
             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
           />
+          {errors.message && (
+            <p className="text-[9px] text-red-500 mt-0.5">Message must be at least 10 characters.</p>
+          )}
         </div>
+
+        {/* Error message */}
+        {errorMsg && (
+          <div className="text-[10px] text-red-600 bg-red-50 border border-red-200 px-2 py-1 rounded">
+            {errorMsg}
+          </div>
+        )}
 
         {/* Bottom: social links + send button */}
         <div className="flex items-center justify-between pt-0.5">
@@ -170,15 +206,20 @@ export default function ContactWindow() {
           </div>
           <motion.button
             className="flex items-center gap-2 px-5 py-2 rounded-full text-white text-[11px] font-bold"
-            style={{
-              background: 'linear-gradient(180deg, #5fad2a 0%, #3b8c16 100%)',
-              boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3)',
-            }}
             onClick={handleSend}
             whileTap={{ scale: 0.95 }}
             whileHover={{ filter: 'brightness(1.1)' }}
+            aria-label="Send message"
+            disabled={sending}
+            style={{
+              background: sending
+                ? 'linear-gradient(180deg, #999 0%, #777 100%)'
+                : 'linear-gradient(180deg, #5fad2a 0%, #3b8c16 100%)',
+              boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3)',
+              cursor: sending ? 'wait' : 'pointer',
+            }}
           >
-            ✉ SEND MESSAGE
+            {sending ? '⏳ SENDING...' : '✉ SEND MESSAGE'}
           </motion.button>
         </div>
       </div>

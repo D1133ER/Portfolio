@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import BootScreen from '@/components/BootScreen';
 import LoginScreen from '@/components/LoginScreen';
@@ -9,10 +9,25 @@ import { WindowProvider } from '@/context/WindowContext';
 
 type Phase = 'boot' | 'login' | 'desktop';
 
+const HAS_VISITED_KEY = 'nischal-portfolio-visited';
+
 export default function Home() {
   const [phase, setPhase] = useState<Phase>('boot');
 
-  const handleBootComplete = useCallback(() => setPhase('login'), []);
+  // Skip boot for returning visitors (deferred to avoid hydration mismatch)
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(HAS_VISITED_KEY)) {
+        setPhase('login');
+      }
+      sessionStorage.setItem(HAS_VISITED_KEY, '1');
+    } catch { /* private browsing */ }
+  }, []);
+
+  const handleBootComplete = useCallback(() => {
+    try { sessionStorage.setItem(HAS_VISITED_KEY, '1'); } catch { /* ignore */ }
+    setPhase('login');
+  }, []);
   const handleLogin = useCallback(() => setPhase('desktop'), []);
   const handleLogOff = useCallback(() => setPhase('login'), []);
 

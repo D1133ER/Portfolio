@@ -51,6 +51,10 @@ Available commands:
   open <win>  Open a window  (about | experience | skills | education | projects | contact)
   date        Current date & time
   sysinfo     System information
+  neofetch    System overview (portfolio stats)
+  mines       Launch Minesweeper
+  notepad     Open Notepad
+  taskmgr     Open Task Manager
   matrix      ???
   cls         Clear the screen
   exit        Close this window
@@ -71,6 +75,30 @@ ${hr()}
 3+ years of hands-on experience spanning IT infrastructure,
 full-stack web development, software testing, and language
 instruction. Passionate about clean code and continuous growth.
+`.trim();
+}
+
+function buildNeofetch() {
+  const now = new Date();
+  const uptime = `${Math.floor(now.getHours())}h ${now.getMinutes()}m`;
+  return `
+       .xXXXXXXx.       nischal@PORTFOLIO-XP
+      xXXXXXXXXXXx      ${hr(19)}
+     xXXXXXXXXXXXXx     OS:        Windows XP Pro SP3 (Portfolio Ed.)
+    xXXXXX  XXXXXXXx    Host:      nischal-portfolio.vercel.app
+   xXXX       XXXXXXx   Kernel:    Next.js 16.1.7 + React 19
+  xXXX   ███░  XXXXXx   Shell:     cmd.exe v2.0
+ xXXXX   ░░░   XXXXXXx  Resolution: ${typeof window !== 'undefined' ? window.screen.width : 1920}x${typeof window !== 'undefined' ? window.screen.height : 1080}
+xXXXXXXXXXXXXXXXXXXXXx  Terminal:  Custom CmdWindow.exe
+ XXXXXXXXXXXXXXXXXXXX   CPU:       Full-Stack Dev @ 100%
+  XXXXXXXXXXXXXXXXXX    Memory:    10 Skills / 10 Skills used
+   XXXXXXXXXXXXXXXX     Uptime:    ${uptime} (this session)
+    XXXXXXXXXXXX        Packages:  17+ windows, 50+ cmds
+     XXXXXXXXXX        
+      XXXXXXXX          Skills:    JS • Angular • Python • Node
+       XXXXXX           Projects:  ${projects.length} · Certs: 9 · Langs: 4
+        XXXX            Contact:   nischalbhandari11@gmail.com
+         XX             
 `.trim();
 }
 
@@ -381,9 +409,30 @@ export default function CmdWindow() {
         break;
       }
 
+      case 'neofetch':
+        push('success', buildNeofetch());
+        break;
+
+      case 'mines':
+      case 'minesweeper':
+        push('success', 'Launching Minesweeper...');
+        openWindow('minesweeper');
+        break;
+
+      case 'notepad':
+        push('success', 'Opening Notepad...');
+        openWindow('notepad');
+        break;
+
+      case 'taskmgr':
+      case 'taskmanager':
+        push('success', 'Opening Task Manager... (or press Ctrl+Alt+Delete)');
+        openWindow('taskmanager');
+        break;
+
       default:
         // Check if it's a partial match suggestion
-        const allCmds = ['help','whoami','skills','softskills','languages','experience','exp','projects','project','edu','education','sysinfo','contact','open','date','matrix','cls','exit','ls','dir','ping','ipconfig','ver','echo','hire'];
+        const allCmds = ['help','whoami','skills','softskills','languages','experience','exp','projects','project','edu','education','sysinfo','contact','open','date','matrix','cls','exit','ls','dir','ping','ipconfig','ver','echo','hire','neofetch','mines','notepad','taskmgr'];
         const similar = allCmds.filter((c) => c.startsWith(lower.slice(0, 3)));
         const hint = similar.length > 0 ? `\nDid you mean: ${similar.join(', ')} ?` : '';
         push('error', `'${cmd}' is not recognized as an internal or external command.${hint}\nType 'help' for available commands.`);
@@ -412,7 +461,7 @@ export default function CmdWindow() {
     } else if (e.key === 'Tab') {
       // Tab completion
       e.preventDefault();
-      const cmds = ['help','whoami','skills','softskills','languages','experience','exp','projects','project','edu','sysinfo','contact','open','date','matrix','cls','exit','ls','dir','ping','ipconfig','ver','echo','hire','sysinfo'];
+      const cmds = ['help','whoami','skills','softskills','languages','experience','exp','projects','project','edu','sysinfo','contact','open','date','matrix','cls','exit','ls','dir','ping','ipconfig','ver','echo','hire','neofetch','mines','notepad','taskmgr'];
       const match = cmds.find((c) => c.startsWith(input.toLowerCase()) && c !== input.toLowerCase());
       if (match) setInput(match);
     }

@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useCallback, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useWindows } from '@/context/WindowContext';
 import { playStartupChime } from '@/utils/sounds';
 import { devQuotes } from '@/data/portfolio';
@@ -11,20 +12,25 @@ import Taskbar from './Taskbar';
 import BalloonNotification from './BalloonNotification';
 import Screensaver from './Screensaver';
 import AltTabSwitcher from './AltTabSwitcher';
-import AboutWindow from './windows/AboutWindow';
-import ExperienceWindow from './windows/ExperienceWindow';
-import SkillsWindow from './windows/SkillsWindow';
-import EducationWindow from './windows/EducationWindow';
-import ContactWindow from './windows/ContactWindow';
-import ProjectsWindow from './windows/ProjectsWindow';
-import CmdWindow from './windows/CmdWindow';
-import QuizWindow from './windows/QuizWindow';
-import RadarWindow from './windows/RadarWindow';
-import TimelineWindow from './windows/TimelineWindow';
-import CertsWindow from './windows/CertsWindow';
-import RateCardWindow from './windows/RateCardWindow';
-import SnippetsWindow from './windows/SnippetsWindow';
-import ShortcutsWindow from './windows/ShortcutsWindow';
+
+// Lazy-load window components — they're only rendered when opened
+const AboutWindow = dynamic(() => import('./windows/AboutWindow'), { ssr: false });
+const ExperienceWindow = dynamic(() => import('./windows/ExperienceWindow'), { ssr: false });
+const SkillsWindow = dynamic(() => import('./windows/SkillsWindow'), { ssr: false });
+const EducationWindow = dynamic(() => import('./windows/EducationWindow'), { ssr: false });
+const ContactWindow = dynamic(() => import('./windows/ContactWindow'), { ssr: false });
+const ProjectsWindow = dynamic(() => import('./windows/ProjectsWindow'), { ssr: false });
+const CmdWindow = dynamic(() => import('./windows/CmdWindow'), { ssr: false });
+const QuizWindow = dynamic(() => import('./windows/QuizWindow'), { ssr: false });
+const RadarWindow = dynamic(() => import('./windows/RadarWindow'), { ssr: false });
+const TimelineWindow = dynamic(() => import('./windows/TimelineWindow'), { ssr: false });
+const CertsWindow = dynamic(() => import('./windows/CertsWindow'), { ssr: false });
+const RateCardWindow = dynamic(() => import('./windows/RateCardWindow'), { ssr: false });
+const SnippetsWindow = dynamic(() => import('./windows/SnippetsWindow'), { ssr: false });
+const ShortcutsWindow = dynamic(() => import('./windows/ShortcutsWindow'), { ssr: false });
+const MinesweeperWindow = dynamic(() => import('./windows/MinesweeperWindow'), { ssr: false });
+const NotepadWindow = dynamic(() => import('./windows/NotepadWindow'), { ssr: false });
+const TaskManagerWindow = dynamic(() => import('./windows/TaskManagerWindow'), { ssr: false });
 
 // Cloud data: { delay (s), duration (s), top (%), size (px), opacity }
 const CLOUDS = [
@@ -35,6 +41,16 @@ const CLOUDS = [
   { id: 4, delay: 18, duration: 85, top: 12, size: 150, opacity: 0.3  },
 ] as const;
 
+// XP-inspired wallpaper themes
+const WALLPAPERS = [
+  { id: 'bliss',    label: 'Bliss',       bg: 'linear-gradient(170deg, #d8c4a0 0%, #c9a870 35%, #b89060 65%, #9a7040 100%)' },
+  { id: 'luna',     label: 'Luna',        bg: 'linear-gradient(180deg, #1a6fcd 0%, #2e8de8 40%, #6bb3f5 100%)' },
+  { id: 'azul',     label: 'Azul',        bg: 'linear-gradient(170deg, #001840 0%, #003070 45%, #0050a0 100%)' },
+  { id: 'autumn',   label: 'Autumn',      bg: 'linear-gradient(160deg, #8b3a12 0%, #c4621a 40%, #e8921a 100%)' },
+  { id: 'matrix',   label: 'Matrix',      bg: 'linear-gradient(180deg, #000 0%, #001800 50%, #003000 100%)' },
+] as const;
+type WallpaperId = typeof WALLPAPERS[number]['id'];
+
 type CtxMenu = { x: number; y: number } | null;
 
 interface DesktopProps {
@@ -44,6 +60,35 @@ interface DesktopProps {
 export default function Desktop({ onLogOff }: DesktopProps) {
   const { openWindow, closeWindow, minimizeAllWindows, windows } = useWindows();
   const [ctxMenu, setCtxMenu] = useState<CtxMenu>(null);
+  const [wallpaper, setWallpaper] = useState<WallpaperId>('bliss');
+  const [showWallpaper, setShowWallpaper] = useState(false);
+
+  // Load persisted wallpaper
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('nischal-wallpaper') as WallpaperId | null;
+      if (saved && WALLPAPERS.some((w) => w.id === saved)) setWallpaper(saved);
+    } catch { /* ignore */ }
+  }, []);
+
+  const selectWallpaper = (id: WallpaperId) => {
+    setWallpaper(id);
+    try { localStorage.setItem('nischal-wallpaper', id); } catch { /* ignore */ }
+    setShowWallpaper(false);
+  };
+
+  // Track which windows have been opened at least once (for lazy mounting)
+  const [mountedWindows, setMountedWindows] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    const openIds = windows.filter((w) => w.isOpen).map((w) => w.id);
+    if (openIds.length > 0) {
+      setMountedWindows((prev) => {
+        const next = new Set(prev);
+        openIds.forEach((id) => next.add(id));
+        return next;
+      });
+    }
+  }, [windows]);
 
   // Auto-rotating quote — changes every 15 seconds
   const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Date.now() / 86_400_000) % devQuotes.length);
@@ -94,6 +139,11 @@ export default function Desktop({ onLogOff }: DesktopProps) {
         ev.preventDefault();
         minimizeAllWindows();
       }
+      // Ctrl+Alt+Delete — Task Manager
+      if (ev.ctrlKey && ev.altKey && ev.key === 'Delete') {
+        ev.preventDefault();
+        openWindow('taskmanager');
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -108,14 +158,14 @@ export default function Desktop({ onLogOff }: DesktopProps) {
 
   const ctxItems = [
     { label: 'Arrange Icons By ▶',    action: closeCtx },
-    { label: 'Refresh',               action: closeCtx },
+    { label: 'Refresh',               action: () => { closeCtx(); window.location.reload(); } },
     null,
-    { label: 'Paste',                 action: closeCtx },
-    { label: 'Paste Shortcut',        action: closeCtx },
+    { label: 'Open Shortcuts',        action: () => { closeCtx(); openWindow('shortcuts'); } },
+    { label: 'Open Terminal',          action: () => { closeCtx(); openWindow('terminal'); } },
+    { label: 'Open Task Manager',     action: () => { closeCtx(); openWindow('taskmanager'); } },
     null,
-    { label: 'New ▶',                 action: closeCtx },
-    null,
-    { label: 'Properties',            action: closeCtx },
+    { label: 'Personalize…',          action: () => { closeCtx(); setShowWallpaper(true); } },
+    { label: 'Properties',            action: () => { closeCtx(); openWindow('about'); } },
   ];
 
   return (
@@ -129,10 +179,8 @@ export default function Desktop({ onLogOff }: DesktopProps) {
     >
       {/* ── Background ── */}
       <div
-        className="absolute inset-0"
-        style={{
-          background: 'linear-gradient(170deg, #d8c4a0 0%, #c9a870 35%, #b89060 65%, #9a7040 100%)',
-        }}
+        className="absolute inset-0 transition-all duration-700"
+        style={{ background: WALLPAPERS.find((w) => w.id === wallpaper)?.bg }}
       />
 
       {/* ── Animated clouds ── */}
@@ -175,21 +223,24 @@ export default function Desktop({ onLogOff }: DesktopProps) {
 
       <DesktopIcons />
 
-      {/* ── Windows ── */}
-      <AboutWindow />
-      <ExperienceWindow />
-      <SkillsWindow />
-      <EducationWindow />
-      <ContactWindow />
-      <ProjectsWindow />
-      <CmdWindow />
-      <QuizWindow />
-      <RadarWindow />
-      <TimelineWindow />
-      <CertsWindow />
-      <RateCardWindow />
-      <SnippetsWindow />
-      <ShortcutsWindow />
+      {/* ── Windows (lazy-mounted on first open) ── */}
+      {mountedWindows.has('about') && <AboutWindow />}
+      {mountedWindows.has('experience') && <ExperienceWindow />}
+      {mountedWindows.has('skills') && <SkillsWindow />}
+      {mountedWindows.has('education') && <EducationWindow />}
+      {mountedWindows.has('contact') && <ContactWindow />}
+      {mountedWindows.has('projects') && <ProjectsWindow />}
+      {mountedWindows.has('terminal') && <CmdWindow />}
+      {mountedWindows.has('quiz') && <QuizWindow />}
+      {mountedWindows.has('radar') && <RadarWindow />}
+      {mountedWindows.has('timeline') && <TimelineWindow />}
+      {mountedWindows.has('certs') && <CertsWindow />}
+      {mountedWindows.has('ratecard') && <RateCardWindow />}
+      {mountedWindows.has('snippets') && <SnippetsWindow />}
+      {mountedWindows.has('shortcuts') && <ShortcutsWindow />}
+      {mountedWindows.has('minesweeper') && <MinesweeperWindow />}
+      {mountedWindows.has('notepad') && <NotepadWindow />}
+      {mountedWindows.has('taskmanager') && <TaskManagerWindow />}
 
       {/* ── Auto-rotating Dev Quote (bottom-center, above taskbar) ── */}
       <motion.div
@@ -240,6 +291,75 @@ export default function Desktop({ onLogOff }: DesktopProps) {
       <BalloonNotification />
       <Screensaver />
       <AltTabSwitcher />
+
+      {/* ── Wallpaper Picker ── */}
+      <AnimatePresence>
+        {showWallpaper && (
+          <>
+            <div className="absolute inset-0 z-[88]" onClick={() => setShowWallpaper(false)} />
+            <motion.div
+              className="absolute z-[89]"
+              style={{
+                left: '50%', top: '50%',
+                transform: 'translate(-50%, -50%)',
+                background: '#ece9d8',
+                border: '2px solid #0a246a',
+                boxShadow: '4px 4px 18px rgba(0,0,0,0.5)',
+                width: 'min(360px, 95vw)',
+                fontFamily: 'Tahoma, sans-serif',
+              }}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1,   opacity: 1 }}
+              exit={{    scale: 0.8, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Title bar */}
+              <div className="h-[26px] flex items-center justify-between px-2"
+                style={{ background: 'linear-gradient(180deg,#2c6fca 0%,#1244a8 100%)' }}>
+                <span className="text-white text-[11px] font-bold">🖼️ Personalize — Wallpaper</span>
+                <button
+                  className="w-[18px] h-[18px] rounded-[2px] border text-white text-[10px] font-bold flex items-center justify-center"
+                  style={{ background: 'linear-gradient(180deg,#e86060 0%,#c03030 100%)', borderColor: '#901010' }}
+                  onClick={() => setShowWallpaper(false)}
+                  aria-label="Close"
+                >✕</button>
+              </div>
+              {/* Wallpaper grid */}
+              <div className="p-4">
+                <p className="text-[10px] text-[#555] mb-3">Select a wallpaper theme:</p>
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  {WALLPAPERS.map((wp) => (
+                    <button
+                      key={wp.id}
+                      onClick={() => selectWallpaper(wp.id)}
+                      className="flex flex-col items-center gap-1"
+                    >
+                      <div
+                        className="w-full rounded"
+                        style={{
+                          height: 48,
+                          background: wp.bg,
+                          border: wallpaper === wp.id ? '2px solid #316ac5' : '2px solid #999',
+                          boxShadow: wallpaper === wp.id ? '0 0 0 1px #316ac5' : undefined,
+                        }}
+                      />
+                      <span className="text-[9px] text-[#444]">{wp.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button
+                    className="text-[10px] px-4 py-1 border border-[#999] hover:bg-[#d4d0c8]"
+                    style={{ background: 'linear-gradient(180deg,#ece9d8 0%,#d4d0c8 100%)' }}
+                    onClick={() => setShowWallpaper(false)}
+                  >Cancel</button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* ── Right-click context menu ── */}
       <AnimatePresence>

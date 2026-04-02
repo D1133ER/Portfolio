@@ -1,7 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
 import { WindowId, WindowState } from '@/types';
+
+const STORAGE_KEY = 'nischal-portfolio-windows';
 
 const defaultWindows: WindowState[] = [
   { id: 'about',      title: 'System Properties',              icon: '🖥️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 80,  y: 40  }, size: { width: 420, height: 420 } },
@@ -14,10 +16,13 @@ const defaultWindows: WindowState[] = [
   { id: 'quiz',       title: 'German Quiz — Lernspiel.exe',     icon: '🇩🇪', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 180, y: 60  }, size: { width: 440, height: 420 } },
   { id: 'radar',      title: 'Skill Radar — sys_stats.exe',     icon: '📊', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 200, y: 70  }, size: { width: 500, height: 500 } },
   { id: 'timeline',   title: 'Career Timeline — history.log',   icon: '📅', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 90,  y: 50  }, size: { width: 600, height: 460 } },
-  { id: 'certs',      title: 'Credentials Wall — certs.msc',    icon: '🏆', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 140, y: 65  }, size: { width: 520, height: 440 } },
-  { id: 'ratecard',   title: 'Services & Rates — services.exe', icon: '💼', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 110, y: 55  }, size: { width: 480, height: 500 } },
-  { id: 'snippets',   title: 'Code Snippets — notepad++.exe',   icon: '📝', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 170, y: 75  }, size: { width: 580, height: 480 } },
-  { id: 'shortcuts',  title: 'Keyboard Shortcuts — help.exe',   icon: '⌨️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 220, y: 90  }, size: { width: 420, height: 420 } },
+  { id: 'certs',        title: 'Credentials Wall — certs.msc',    icon: '🏆', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 140, y: 65  }, size: { width: 520, height: 440 } },
+  { id: 'ratecard',     title: 'Services & Rates — services.exe', icon: '💼', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 110, y: 55  }, size: { width: 480, height: 500 } },
+  { id: 'snippets',     title: 'Code Snippets — notepad++.exe',   icon: '📝', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 170, y: 75  }, size: { width: 580, height: 480 } },
+  { id: 'shortcuts',    title: 'Keyboard Shortcuts — help.exe',   icon: '⌨️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 220, y: 90  }, size: { width: 420, height: 420 } },
+  { id: 'minesweeper',  title: 'Minesweeper',                     icon: '💣', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 240, y: 100 }, size: { width: 320, height: 400 } },
+  { id: 'notepad',      title: 'Untitled — Notepad',              icon: '🗒️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 180, y: 80  }, size: { width: 480, height: 380 } },
+  { id: 'taskmanager',  title: 'Windows Task Manager',            icon: '📋', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 160, y: 70  }, size: { width: 500, height: 440 } },
 ];
 
 type Action =
@@ -31,9 +36,39 @@ type Action =
   | { type: 'RESIZE';   id: WindowId; size: { width: number; height: number } }
   | { type: 'RESIZE_POSITION'; id: WindowId; position: { x: number; y: number }; size: { width: number; height: number } }
   | { type: 'MINIMIZE_ALL' }
-  | { type: 'CLOSE_ALL' };
+  | { type: 'CLOSE_ALL' }
+  | { type: 'HYDRATE'; state: WindowState[] };
 
 let zCounter = 10;
+
+function loadPersistedState(): WindowState[] | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as WindowState[];
+    // Validate shape — every defaultWindow ID must be present (ignore extra)
+    if (
+      !Array.isArray(parsed) ||
+      !defaultWindows.every((dw) => parsed.some((p) => p.id === dw.id))
+    ) {
+      return null;
+    }
+    // Restore zCounter to max saved value
+    const maxZ = Math.max(...parsed.map((w) => w.zIndex), 10);
+    zCounter = maxZ;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function persistState(state: WindowState[]) {
+  if (typeof window === 'undefined') return;
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch { /* ignore quota errors */ }
+}
 
 function reducer(state: WindowState[], action: Action): WindowState[] {
   switch (action.type) {
@@ -81,6 +116,8 @@ function reducer(state: WindowState[], action: Action): WindowState[] {
       return state.map((w) => (w.isOpen ? { ...w, isMinimized: true } : w));
     case 'CLOSE_ALL':
       return state.map((w) => ({ ...w, isOpen: false, isMinimized: false, isMaximized: false }));
+    case 'HYDRATE':
+      return action.state;
     default:
       return state;
   }
@@ -99,15 +136,54 @@ interface WindowContextType {
   resizePositionWindow: (id: WindowId, position: { x: number; y: number }, size: { width: number; height: number }) => void;
   minimizeAllWindows: () => void;
   getWindow:     (id: WindowId) => WindowState | undefined;
+  recycledIds:        WindowId[];
+  restoreFromRecycle: (id: WindowId) => void;
+  emptyRecycleBin:    () => void;
 }
 
 const WindowContext = createContext<WindowContextType | null>(null);
 
 export function WindowProvider({ children }: { children: React.ReactNode }) {
   const [windows, dispatch] = useReducer(reducer, defaultWindows);
+  const [recycledIds, setRecycledIds] = React.useState<WindowId[]>([]);
 
-  const openWindow     = useCallback((id: WindowId) => dispatch({ type: 'OPEN',     id }), []);
-  const closeWindow    = useCallback((id: WindowId) => dispatch({ type: 'CLOSE',    id }), []);
+  // Hydrate persisted state after mount to avoid SSR mismatch
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    const persisted = loadPersistedState();
+    if (persisted) {
+      dispatch({ type: 'HYDRATE', state: persisted });
+    }
+  }, []);
+
+  // Persist window state to sessionStorage on changes
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    persistState(windows);
+  }, [windows]);
+
+  const openWindow     = useCallback((id: WindowId) => {
+    dispatch({ type: 'OPEN', id });
+    setRecycledIds((prev) => prev.filter((r) => r !== id));
+  }, []);
+  const closeWindow    = useCallback((id: WindowId) => {
+    const isCurrentlyOpen = windows.find((w) => w.id === id)?.isOpen ?? false;
+    dispatch({ type: 'CLOSE', id });
+    if (isCurrentlyOpen) {
+      setRecycledIds((prev) => {
+        const next = prev.filter((r) => r !== id);
+        return [...next, id].slice(-10);
+      });
+    }
+  }, [windows]);
+  const restoreFromRecycle = useCallback((id: WindowId) => {
+    dispatch({ type: 'OPEN', id });
+    setRecycledIds((prev) => prev.filter((r) => r !== id));
+  }, []);
+  const emptyRecycleBin = useCallback(() => setRecycledIds([]), []);
   const minimizeWindow = useCallback((id: WindowId) => dispatch({ type: 'MINIMIZE', id }), []);
   const maximizeWindow = useCallback((id: WindowId) => dispatch({ type: 'MAXIMIZE', id }), []);
   const restoreWindow  = useCallback((id: WindowId) => dispatch({ type: 'RESTORE',  id }), []);
@@ -119,7 +195,7 @@ export function WindowProvider({ children }: { children: React.ReactNode }) {
   const getWindow      = useCallback((id: WindowId) => windows.find((w) => w.id === id), [windows]);
 
   return (
-    <WindowContext.Provider value={{ windows, openWindow, closeWindow, minimizeWindow, maximizeWindow, restoreWindow, focusWindow, moveWindow, resizeWindow, resizePositionWindow, minimizeAllWindows, getWindow }}>
+    <WindowContext.Provider value={{ windows, openWindow, closeWindow, minimizeWindow, maximizeWindow, restoreWindow, focusWindow, moveWindow, resizeWindow, resizePositionWindow, minimizeAllWindows, getWindow, recycledIds, restoreFromRecycle, emptyRecycleBin }}>
       {children}
     </WindowContext.Provider>
   );

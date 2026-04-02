@@ -62,7 +62,7 @@ const SERVICES = [
   },
 ];
 
-const CONTACT = { email: 'nischal.bhandari@example.com', location: 'Pokhara, Nepal', availability: 'Open to remote & hybrid' };
+const CONTACT = { email: 'nischalbhandari11@gmail.com', location: 'Pokhara, Nepal', availability: 'Open to remote & hybrid' };
 
 export default function RateCardWindow() {
   const [activeIdx, setActiveIdx] = useState<number | null>(null);

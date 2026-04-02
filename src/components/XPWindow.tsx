@@ -5,6 +5,7 @@ import { useRef, useState, ReactNode, useEffect } from 'react';
 import { useWindows } from '@/context/WindowContext';
 import { WindowId } from '@/types';
 import { playWindowOpen, playWindowClose, playClick } from '@/utils/sounds';
+import ErrorBoundary from './ErrorBoundary';
 
 interface XPWindowProps {
   id: WindowId;
@@ -235,8 +236,9 @@ export default function XPWindow({
             whileHover={{ filter: 'brightness(1.3)' }} whileTap={{ scale: 0.88 }}
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); playClick(); minimizeWindow(id); }}
+            aria-label={`Minimize ${win.title}`}
           >
-            <span style={{ marginTop: 4, display: 'block', lineHeight: 1 }}>_</span>
+            <span style={{ marginTop: 4, display: 'block', lineHeight: 1 }} aria-hidden="true">_</span>
           </motion.button>
           {/* Maximize / Restore */}
           <motion.button
@@ -246,8 +248,9 @@ export default function XPWindow({
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); playClick(); win.isMaximized ? restoreWindow(id) : maximizeWindow(id); }}
             title={win.isMaximized ? 'Restore' : 'Maximize'}
+            aria-label={win.isMaximized ? `Restore ${win.title}` : `Maximize ${win.title}`}
           >
-            {win.isMaximized ? '❐' : '□'}
+            <span aria-hidden="true">{win.isMaximized ? '❐' : '□'}</span>
           </motion.button>
           {/* Close */}
           <motion.button
@@ -256,8 +259,9 @@ export default function XPWindow({
             whileHover={{ filter: 'brightness(1.3)' }} whileTap={{ scale: 0.88 }}
             onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); playWindowClose(); closeWindow(id); }}
+            aria-label={`Close ${win.title}`}
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </motion.button>
         </div>
       </div>
@@ -280,7 +284,9 @@ export default function XPWindow({
 
       {/* ── Content ── */}
       <div className={`flex-1 min-h-0 relative${noPadding ? ' overflow-hidden' : ' overflow-y-auto overflow-x-hidden p-2.5'}`}>
-        {children}
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
       </div>
 
       {/* ── Status Bar ── */}

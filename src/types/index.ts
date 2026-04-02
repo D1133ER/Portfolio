@@ -1,6 +1,7 @@
 export type WindowId =
   | 'about' | 'experience' | 'skills' | 'education' | 'contact' | 'projects' | 'terminal'
-  | 'quiz' | 'radar' | 'timeline' | 'certs' | 'ratecard' | 'snippets' | 'shortcuts';
+  | 'quiz' | 'radar' | 'timeline' | 'certs' | 'ratecard' | 'snippets' | 'shortcuts'
+  | 'minesweeper' | 'notepad' | 'taskmanager';
 
 export interface WindowState {
   id: WindowId;

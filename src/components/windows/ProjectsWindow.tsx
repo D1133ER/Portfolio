@@ -56,11 +56,6 @@ export default function ProjectsWindow() {
         ))}
       </div>
 
-      <div className="mt-4 p-5 border-2 border-dashed border-[#c3c5d8]/40 rounded-xl flex flex-col items-center justify-center text-center opacity-40">
-        <span className="text-xl mb-1">☁</span>
-        <p className="text-[9px] text-[#434655]">Drag and drop projects here to upload to System Explorer</p>
-      </div>
-
       {/* Project detail list for extra info */}
       <div className="mt-3 border-t border-[#b8b5a8]/40 pt-3 space-y-2">
         {projects.map((project, i) => (

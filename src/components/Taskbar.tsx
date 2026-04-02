@@ -62,20 +62,23 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
   };
 
   const startMenuItems: { id: WindowId; icon: string; label: string }[] = [
-    { id: 'about',      icon: '🖥️', label: 'My Portfolio'  },
-    { id: 'experience', icon: '📁', label: 'My Experience' },
-    { id: 'skills',     icon: '⚙️', label: 'My Skills'     },
-    { id: 'education',  icon: '🎓', label: 'Education'     },
-    { id: 'projects',   icon: '📂', label: 'My Projects'   },
-    { id: 'contact',    icon: '✉️', label: 'Contact Me'    },
-    { id: 'terminal',   icon: '💻', label: 'Command Prompt'},
-    { id: 'quiz',       icon: '🇩🇪', label: 'Deutsch Quiz' },
-    { id: 'radar',      icon: '📊', label: 'Skill Radar'  },
-    { id: 'timeline',   icon: '📅', label: 'Career Timeline'},
-    { id: 'certs',      icon: '🏆', label: 'Credentials'  },
-    { id: 'ratecard',   icon: '💼', label: 'Services'      },
-    { id: 'snippets',   icon: '📝', label: 'Code Snippets'},
-    { id: 'shortcuts',  icon: '⌨️', label: 'Shortcuts'    },
+    { id: 'about',       icon: '🖥️', label: 'My Portfolio'  },
+    { id: 'experience',  icon: '📁', label: 'My Experience' },
+    { id: 'skills',      icon: '⚙️', label: 'My Skills'     },
+    { id: 'education',   icon: '🎓', label: 'Education'     },
+    { id: 'projects',    icon: '📂', label: 'My Projects'   },
+    { id: 'contact',     icon: '✉️', label: 'Contact Me'    },
+    { id: 'terminal',    icon: '💻', label: 'Command Prompt'},
+    { id: 'quiz',        icon: '🇩🇪', label: 'Deutsch Quiz' },
+    { id: 'radar',       icon: '📊', label: 'Skill Radar'  },
+    { id: 'timeline',    icon: '📅', label: 'Career Timeline'},
+    { id: 'certs',       icon: '🏆', label: 'Credentials'  },
+    { id: 'ratecard',    icon: '💼', label: 'Services'      },
+    { id: 'snippets',    icon: '📝', label: 'Code Snippets'},
+    { id: 'shortcuts',   icon: '⌨️', label: 'Shortcuts'    },
+    { id: 'minesweeper', icon: '💣', label: 'Minesweeper'  },
+    { id: 'notepad',     icon: '🗒️', label: 'Notepad'      },
+    { id: 'taskmanager', icon: '📋', label: 'Task Manager' },
   ];
 
   return (
@@ -320,9 +323,16 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
                 {/* Right — system places */}
                 <div className="w-[110px] py-1 bg-[#dde4f0]">
                   <div className="text-[9px] font-bold uppercase px-2 py-1 text-[#555]">System</div>
-                  {['My Documents','My Computer','Control Panel','Search','Run...'].map((label) => (
+                  {([
+                    { label: 'My Documents', id: 'projects'  as WindowId },
+                    { label: 'My Computer',  id: 'about'     as WindowId },
+                    { label: 'Control Panel',id: 'skills'    as WindowId },
+                    { label: 'Search',       id: 'terminal'  as WindowId },
+                    { label: 'Run...',       id: 'terminal'  as WindowId },
+                  ] as { label: string; id: WindowId }[]).map(({ label, id }) => (
                     <div key={label}
-                      className="px-2 py-1.5 text-[10px] cursor-pointer hover:bg-[#316ac5] hover:text-white transition-colors truncate">
+                      className="px-2 py-1.5 text-[10px] cursor-pointer hover:bg-[#316ac5] hover:text-white transition-colors truncate"
+                      onClick={() => { openWindow(id); setStartOpen(false); }}>
                       {label}
                     </div>
                   ))}
@@ -377,8 +387,12 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
           onClick={() => setStartOpen(!startOpen)}
           whileHover={{ filter: 'brightness(1.15)' }}
           whileTap={{ filter: 'brightness(0.9)' }}
+          role="button"
+          aria-label="Start menu"
+          aria-expanded={startOpen}
+          aria-haspopup="menu"
         >
-          <div className="flex flex-wrap w-3 h-3 gap-[1px] flex-shrink-0">
+          <div className="flex flex-wrap w-3 h-3 gap-[1px] flex-shrink-0" aria-hidden="true">
             <div className="rounded-[1px] bg-red-400   w-[5px] h-[5px]" />
             <div className="rounded-[1px] bg-green-400 w-[5px] h-[5px]" />
             <div className="rounded-[1px] bg-blue-400  w-[5px] h-[5px]" />
@@ -396,6 +410,7 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
             className="w-[22px] h-[22px] flex items-center justify-center rounded-sm cursor-pointer text-[13px]"
             style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)' }}
             title="Show Desktop (Ctrl+D)"
+            aria-label="Show Desktop"
             onClick={() => minimizeAllWindows()}
             whileHover={{ background: 'rgba(255,255,255,0.25)' }}
             whileTap={{ scale: 0.88 }}
@@ -445,17 +460,18 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
         <div className="flex items-center h-full flex-shrink-0">
           <div className="flex items-center gap-1.5 px-2 h-full border-l border-white/20"
             style={{ background: 'rgba(0,0,0,0.18)' }}>
-            <span className="text-[12px] opacity-75 cursor-default" title="Network">📶</span>
+            <span className="text-[12px] opacity-75 cursor-default" title="Network" aria-label="Network status" role="img">📶</span>
             <motion.button
               className="text-[12px] opacity-75 cursor-pointer bg-transparent border-none p-0 leading-none"
               title={muted ? 'Unmute sounds' : 'Mute sounds'}
+              aria-label={muted ? 'Unmute sounds' : 'Mute sounds'}
               onClick={toggleMute}
               whileHover={{ opacity: 1 }}
               whileTap={{ scale: 0.85 }}
             >
               {muted ? '🔇' : '🔊'}
             </motion.button>
-            <span className="text-[12px] opacity-75 cursor-default" title="Power">⚡</span>
+            <span className="text-[12px] opacity-75 cursor-default" title="Power" aria-label="Power status" role="img">⚡</span>
           </div>
           <div
             className="flex flex-col items-center justify-center px-3 h-full text-white text-[10px] leading-tight border-l border-white/20 cursor-default"

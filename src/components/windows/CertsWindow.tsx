@@ -10,14 +10,13 @@ type Cat = typeof CATEGORIES[number];
 
 export default function CertsWindow() {
   const [filter,   setFilter]   = useState<Cat>('All');
-  const [selected, setSelected] = useState<number | null>(null);
-  const [flipped,  setFlipped]  = useState<Set<number>>(new Set());
+  const [flipped,  setFlipped]  = useState<Set<string>>(new Set());
 
   const filtered = filter === 'All' ? certifications : certifications.filter((c) => c.category === filter);
 
-  const toggleFlip = (i: number) => {
+  const toggleFlip = (name: string) => {
     const s = new Set(flipped);
-    s.has(i) ? s.delete(i) : s.add(i);
+    s.has(name) ? s.delete(name) : s.add(name);
     setFlipped(s);
   };
 
@@ -61,7 +60,7 @@ export default function CertsWindow() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           <AnimatePresence mode="popLayout">
             {filtered.map((cert, i) => {
-              const isFlipped = flipped.has(i);
+              const isFlipped = flipped.has(cert.name);
               return (
                 <motion.div
                   key={cert.name}
@@ -72,7 +71,7 @@ export default function CertsWindow() {
                   transition={{ delay: i * 0.04 }}
                   className="cursor-pointer"
                   style={{ perspective: '600px' }}
-                  onClick={() => toggleFlip(i)}
+                  onClick={() => toggleFlip(cert.name)}
                 >
                   <motion.div
                     style={{ transformStyle: 'preserve-3d', position: 'relative', height: '90px' }}
