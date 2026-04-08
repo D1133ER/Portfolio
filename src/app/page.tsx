@@ -33,7 +33,7 @@ export default function Home() {
 
   return (
     <WindowProvider>
-      <div className="w-full h-[100dvh] min-h-[500px] relative overflow-hidden bg-black font-[Tahoma,Arial,sans-serif] text-[11px]">
+      <div className="w-full h-[100dvh] relative overflow-hidden bg-black font-[Tahoma,Arial,sans-serif] text-[11px]">
         <AnimatePresence mode="wait">
           {phase === 'boot' && <BootScreen key="boot" onComplete={handleBootComplete} />}
           {phase === 'login' && <LoginScreen key="login" onLogin={handleLogin} />}

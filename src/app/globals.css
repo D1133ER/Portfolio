@@ -88,6 +88,20 @@ html, body {
   }
 }
 
+/* ── Safe-area / notch insets (viewport-fit=cover) ──────────────────────── */
+/* Shift desktop icons and taskbar away from device notches in landscape */
+.xp-taskbar {
+  padding-left:  env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* Grow the taskbar height to absorb the bottom safe area */
+  height: calc(30px + env(safe-area-inset-bottom, 0px));
+}
+
+.xp-desktop-icons {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
 /* ── Mobile landscape fixes ──────────────────────────────────────────────── */
 /* Short landscape screens (e.g. phones rotated): hide decorative quote carousel */
 @media screen and (orientation: landscape) and (max-height: 480px) {

@@ -72,7 +72,7 @@ const QuoteCarousel = memo(function QuoteCarousel() {
   return (
     <motion.div
       className="absolute left-1/2 -translate-x-1/2 pointer-events-none select-none xp-landscape-hide"
-      style={{ bottom: 42, zIndex: 6, width: 'min(480px, 90vw)' }}
+      style={{ bottom: 'calc(42px + env(safe-area-inset-bottom, 0px))', zIndex: 6, width: 'min(480px, 90vw)' }}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 2, duration: 1 }}
@@ -258,7 +258,7 @@ export default function Desktop({ onLogOff }: DesktopProps) {
       ))}
 
       {/* ── Mountain ridges ── */}
-      <div className="absolute bottom-[30px] left-0 right-0 h-[200px]">
+      <div className="absolute left-0 right-0 h-[200px]" style={{ bottom: 'calc(30px + env(safe-area-inset-bottom, 0px))' }}>
         <div
           className="absolute inset-0"
           style={{

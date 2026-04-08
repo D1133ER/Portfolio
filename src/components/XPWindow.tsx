@@ -198,7 +198,7 @@ export default function XPWindow({
 
   // ── Styles ──────────────────────────────────────────────────────────────────
   const posStyle = win.isMaximized
-    ? ({ position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: 'calc(100% - 30px)' })
+    ? ({ position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: 'calc(100% - 30px - env(safe-area-inset-bottom, 0px))' })
     : ({ position: 'absolute' as const, top: win.position.y, left: win.position.x, width: win.size.width, height: win.size.height,
          maxWidth: 'calc(100vw - 4px)', maxHeight: 'calc(100dvh - 36px)' });
 

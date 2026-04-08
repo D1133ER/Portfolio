@@ -280,8 +280,8 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             />
             <motion.div
-              className="absolute bottom-[30px] left-0 z-[49] rounded-t-lg overflow-hidden flex flex-col"
-              style={{ background: '#ece9d8', border: '2px solid #0a246a', boxShadow: '4px -4px 18px rgba(0,0,0,0.5)', width: 'min(280px, 100vw)', maxHeight: 'calc(100dvh - 34px)' }}
+              className="absolute left-0 z-[49] rounded-t-lg overflow-hidden flex flex-col"
+              style={{ bottom: 'calc(30px + env(safe-area-inset-bottom, 0px))', background: '#ece9d8', border: '2px solid #0a246a', boxShadow: '4px -4px 18px rgba(0,0,0,0.5)', width: 'min(280px, 100vw)', maxHeight: 'calc(100dvh - 34px)' }}
               initial={{ y: 20, opacity: 0, scaleY: 0.8 }}
               animate={{ y: 0,  opacity: 1, scaleY: 1   }}
               exit={{    y: 20, opacity: 0, scaleY: 0.8 }}
@@ -368,8 +368,8 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
 
       {/* ── Taskbar ── */}
       <motion.div
-        className="absolute bottom-0 left-0 right-0 h-[30px] flex items-center z-[50] border-t border-[#4a84d8]"
-        style={{ background: 'linear-gradient(180deg, #2573c2 0%, #1550a0 50%, #1244a0 100%)' }}
+        className="absolute bottom-0 left-0 right-0 flex items-center z-[50] border-t border-[#4a84d8] xp-taskbar"
+        style={{ background: 'linear-gradient(180deg, #2573c2 0%, #1550a0 50%, #1244a0 100%)', minHeight: 30 }}
         initial={{ y: 30 }} animate={{ y: 0 }}
         transition={{ delay: 0.2, type: 'spring', stiffness: 120 }}
       >
