@@ -74,8 +74,8 @@ function reducer(state: WindowState[], action: Action): WindowState[] {
   switch (action.type) {
     case 'OPEN': {
       zCounter++;
-      // Maximize on portrait-mobile OR landscape-phone (small viewport height)
-      const isMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || window.innerHeight < 500);
+      // Maximize only on portrait-mobile (narrow screen). Landscape mode → desktop.
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
       return state.map((w) =>
         w.id === action.id ? { ...w, isOpen: true, isMinimized: false, isMaximized: isMobile, zIndex: zCounter } : w
       );
@@ -197,19 +197,27 @@ export function WindowProvider({ children }: { children: React.ReactNode }) {
   const minimizeAllWindows = useCallback(() => dispatch({ type: 'MINIMIZE_ALL' }), []);
   const getWindow      = useCallback((id: WindowId) => windows.find((w) => w.id === id), [windows]);
 
-  // When the user rotates to landscape on a phone (small height), maximize any
-  // open windowed windows so they don't overflow the shrunken viewport.
+  // Handle orientation change between portrait-mobile and landscape/desktop.
+  // Crossing the 768px breakpoint: landscape → restore to windowed desktop mode;
+  // portrait-mobile → maximize open windows.
   useEffect(() => {
-    const handleResize = () => {
-      if (typeof window === 'undefined') return;
-      if (window.innerHeight < 500) {
+    if (typeof window === 'undefined') return;
+    const mql = window.matchMedia('(max-width: 767px)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (!e.matches) {
+        // Went from portrait-mobile to landscape / desktop — show desktop mode
+        windowsRef.current
+          .filter((w) => w.isOpen && w.isMaximized && !w.isMinimized)
+          .forEach((w) => dispatch({ type: 'RESTORE', id: w.id }));
+      } else {
+        // Went from landscape/desktop to portrait-mobile — maximize windows
         windowsRef.current
           .filter((w) => w.isOpen && !w.isMaximized && !w.isMinimized)
           .forEach((w) => dispatch({ type: 'MAXIMIZE', id: w.id }));
       }
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    mql.addEventListener('change', handleChange);
+    return () => mql.removeEventListener('change', handleChange);
   }, []);
 
   return (
