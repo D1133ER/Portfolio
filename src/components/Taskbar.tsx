@@ -280,8 +280,8 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             />
             <motion.div
-              className="absolute bottom-[30px] left-0 z-[49] rounded-t-lg overflow-hidden"
-              style={{ background: '#ece9d8', border: '2px solid #0a246a', boxShadow: '4px -4px 18px rgba(0,0,0,0.5)', width: 'min(280px, 100vw)' }}
+              className="absolute bottom-[30px] left-0 z-[49] rounded-t-lg overflow-hidden flex flex-col"
+              style={{ background: '#ece9d8', border: '2px solid #0a246a', boxShadow: '4px -4px 18px rgba(0,0,0,0.5)', width: 'min(280px, 100vw)', maxHeight: 'calc(100dvh - 34px)' }}
               initial={{ y: 20, opacity: 0, scaleY: 0.8 }}
               animate={{ y: 0,  opacity: 1, scaleY: 1   }}
               exit={{    y: 20, opacity: 0, scaleY: 0.8 }}
@@ -302,9 +302,9 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
               <div className="h-[2px] bg-gradient-to-r from-orange-400 via-orange-300 to-transparent" />
 
               {/* Left / Right panels */}
-              <div className="flex">
+              <div className="flex flex-1 overflow-hidden min-h-0">
                 {/* Left — pinned apps */}
-                <div className="flex-1 border-r border-[#c0bdb0] py-1">
+                <div className="flex-1 border-r border-[#c0bdb0] py-1 overflow-y-auto">
                   <div className="text-[9px] font-bold uppercase px-3 py-1 text-[#555]">Open</div>
                   {startMenuItems.map((item, i) => (
                     <motion.div

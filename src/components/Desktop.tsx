@@ -71,7 +71,7 @@ const QuoteCarousel = memo(function QuoteCarousel() {
 
   return (
     <motion.div
-      className="absolute left-1/2 -translate-x-1/2 pointer-events-none select-none"
+      className="absolute left-1/2 -translate-x-1/2 pointer-events-none select-none xp-landscape-hide"
       style={{ bottom: 42, zIndex: 6, width: 'min(480px, 90vw)' }}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}

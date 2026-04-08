@@ -110,7 +110,7 @@ export default function DesktopIcons() {
 
   return (
     <div
-      className="absolute top-2 left-2 z-[5] flex flex-col flex-wrap gap-1"
+      className="absolute top-2 left-2 z-[5] flex flex-col flex-wrap gap-1 xp-desktop-icons"
       style={{ maxHeight: 'calc(100dvh - 60px)', maxWidth: 'calc(100vw - 8px)', overflow: 'hidden' }}
       onClick={() => setSelected(null)}
     >

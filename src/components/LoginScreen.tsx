@@ -140,7 +140,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
       </motion.div>
 
       {/* Main login area */}
-      <div className="flex-1 flex flex-col items-center justify-center gap-5 relative z-[1]">
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-3 landscape:gap-1 landscape:py-2 overflow-y-auto relative z-[1]">
         <motion.div
           className="flex flex-col items-center gap-3 px-6 sm:px-9 py-5 rounded cursor-pointer w-[90vw] max-w-[280px]"
           style={{
@@ -159,7 +159,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
           whileTap={{ scale: 0.95 }}
         >
           <motion.div
-            className="w-16 h-16 rounded-full border-3 border-white flex items-center justify-center text-[22px] text-white font-bold"
+            className="w-16 h-16 rounded-full border-3 border-white flex items-center justify-center text-[22px] text-white font-bold xp-login-avatar"
             style={{ background: 'linear-gradient(135deg, #f90, #ff6600)' }}
             animate={{
               boxShadow: [

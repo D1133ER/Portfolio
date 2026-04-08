@@ -87,3 +87,29 @@ html, body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── Mobile landscape fixes ──────────────────────────────────────────────── */
+/* Short landscape screens (e.g. phones rotated): hide decorative quote carousel */
+@media screen and (orientation: landscape) and (max-height: 480px) {
+  .xp-landscape-hide {
+    display: none !important;
+  }
+
+  /* Make cloud animations less tall so they don't push layout */
+  @keyframes float-cloud {
+    0%   { transform: translateX(-200px); }
+    100% { transform: translateX(calc(100vw + 200px)); }
+  }
+
+  /* Compact the desktop icon grid for narrow row height */
+  .xp-desktop-icons {
+    max-height: calc(100dvh - 50px) !important;
+  }
+
+  /* Login screen: reduce avatar and gaps */
+  .xp-login-avatar {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+    font-size: 14px !important;
+  }
+}

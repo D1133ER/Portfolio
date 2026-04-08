@@ -74,7 +74,8 @@ function reducer(state: WindowState[], action: Action): WindowState[] {
   switch (action.type) {
     case 'OPEN': {
       zCounter++;
-      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+      // Maximize on portrait-mobile OR landscape-phone (small viewport height)
+      const isMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || window.innerHeight < 500);
       return state.map((w) =>
         w.id === action.id ? { ...w, isOpen: true, isMinimized: false, isMaximized: isMobile, zIndex: zCounter } : w
       );
@@ -195,6 +196,21 @@ export function WindowProvider({ children }: { children: React.ReactNode }) {
   const resizePositionWindow = useCallback((id: WindowId, position: { x: number; y: number }, size: { width: number; height: number }) => dispatch({ type: 'RESIZE_POSITION', id, position, size }), []);
   const minimizeAllWindows = useCallback(() => dispatch({ type: 'MINIMIZE_ALL' }), []);
   const getWindow      = useCallback((id: WindowId) => windows.find((w) => w.id === id), [windows]);
+
+  // When the user rotates to landscape on a phone (small height), maximize any
+  // open windowed windows so they don't overflow the shrunken viewport.
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window === 'undefined') return;
+      if (window.innerHeight < 500) {
+        windowsRef.current
+          .filter((w) => w.isOpen && !w.isMaximized && !w.isMinimized)
+          .forEach((w) => dispatch({ type: 'MAXIMIZE', id: w.id }));
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <WindowContext.Provider value={{ windows, openWindow, closeWindow, minimizeWindow, maximizeWindow, restoreWindow, focusWindow, moveWindow, resizeWindow, resizePositionWindow, minimizeAllWindows, getWindow, recycledIds, restoreFromRecycle, emptyRecycleBin }}>
