@@ -132,11 +132,15 @@ export default function Desktop({ onLogOff }: DesktopProps) {
   // Reset position each time the dialog opens
   useEffect(() => { if (showWallpaper) setWpPos(null); }, [showWallpaper]);
 
-  const handleWpTitleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const startWpDrag = (startX: number, startY: number) => {
     const rect = wpRef.current?.getBoundingClientRect();
     if (!rect) return;
-    wpDragRef.current = { startX: e.clientX, startY: e.clientY, origX: rect.left, origY: rect.top };
+    wpDragRef.current = { startX, startY, origX: rect.left, origY: rect.top };
+  };
+
+  const handleWpTitleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    startWpDrag(e.clientX, e.clientY);
     const onMove = (ev: MouseEvent) => {
       if (!wpDragRef.current) return;
       setWpPos({
@@ -151,6 +155,26 @@ export default function Desktop({ onLogOff }: DesktopProps) {
     };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
+  };
+
+  const handleWpTitleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    startWpDrag(touch.clientX, touch.clientY);
+    const onMove = (ev: TouchEvent) => {
+      if (!wpDragRef.current) return;
+      const t = ev.touches[0];
+      setWpPos({
+        x: wpDragRef.current.origX + (t.clientX - wpDragRef.current.startX),
+        y: wpDragRef.current.origY + (t.clientY - wpDragRef.current.startY),
+      });
+    };
+    const onEnd = () => {
+      wpDragRef.current = null;
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+    };
+    window.addEventListener('touchmove', onMove, { passive: true });
+    window.addEventListener('touchend', onEnd);
   };
 
   // Load persisted wallpaper
@@ -345,8 +369,9 @@ export default function Desktop({ onLogOff }: DesktopProps) {
             >
               {/* Title bar */}
               <div className="h-[26px] flex items-center justify-between px-2"
-                style={{ background: 'linear-gradient(180deg,#2c6fca 0%,#1244a8 100%)', cursor: 'move' }}
-                onMouseDown={handleWpTitleMouseDown}>
+                style={{ background: 'linear-gradient(180deg,#2c6fca 0%,#1244a8 100%)', cursor: 'move', touchAction: 'none' }}
+                onMouseDown={handleWpTitleMouseDown}
+                onTouchStart={handleWpTitleTouchStart}>
                 <span className="text-white text-[11px] font-bold">🖼️ Personalize — Wallpaper</span>
                 <button
                   className="w-[18px] h-[18px] rounded-[2px] border text-white text-[10px] font-bold flex items-center justify-center"
