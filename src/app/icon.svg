@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a69cc"/>
+      <stop offset="100%" stop-color="#5aa0e0"/>
+    </linearGradient>
+    <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#56b432"/>
+      <stop offset="100%" stop-color="#3a8c1a"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d8d4c8"/>
+      <stop offset="100%" stop-color="#b8b4a8"/>
+    </linearGradient>
+  </defs>
+  <!-- Monitor body -->
+  <rect x="2" y="2" width="28" height="20" rx="2" fill="url(#body)" stroke="#888" stroke-width="0.5"/>
+  <!-- Screen bezel -->
+  <rect x="3.5" y="3.5" width="25" height="17" rx="1.5" fill="#1a1a2e"/>
+  <!-- Screen - sky -->
+  <rect x="4.5" y="4.5" width="23" height="15" fill="url(#sky)"/>
+  <!-- Screen - rolling green hill (Bliss) -->
+  <ellipse cx="16" cy="21" rx="15" ry="6" fill="url(#grass)"/>
+  <!-- White cloud puff -->
+  <circle cx="10" cy="8" r="1.8" fill="rgba(255,255,255,0.75)"/>
+  <circle cx="12" cy="7.2" r="2.2" fill="rgba(255,255,255,0.75)"/>
+  <circle cx="14" cy="8" r="1.6" fill="rgba(255,255,255,0.75)"/>
+  <!-- Monitor neck -->
+  <rect x="13.5" y="22" width="5" height="4" fill="#b8b4a8"/>
+  <!-- Monitor base -->
+  <rect x="10" y="26" width="12" height="2.5" rx="1.2" fill="#a8a49a" stroke="#888" stroke-width="0.4"/>
+</svg>

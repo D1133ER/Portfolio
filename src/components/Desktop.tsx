@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useCallback, useEffect, memo } from 'react';
+import { useState, useCallback, useEffect, memo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useWindows } from '@/context/WindowContext';
 import { playStartupChime } from '@/utils/sounds';
@@ -125,6 +125,33 @@ export default function Desktop({ onLogOff }: DesktopProps) {
   const [ctxMenu, setCtxMenu] = useState<CtxMenu>(null);
   const [wallpaper, setWallpaper] = useState<WallpaperId>('bliss');
   const [showWallpaper, setShowWallpaper] = useState(false);
+  const [wpPos, setWpPos] = useState<{ x: number; y: number } | null>(null);
+  const wpRef = useRef<HTMLDivElement>(null);
+  const wpDragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
+
+  // Reset position each time the dialog opens
+  useEffect(() => { if (showWallpaper) setWpPos(null); }, [showWallpaper]);
+
+  const handleWpTitleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const rect = wpRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    wpDragRef.current = { startX: e.clientX, startY: e.clientY, origX: rect.left, origY: rect.top };
+    const onMove = (ev: MouseEvent) => {
+      if (!wpDragRef.current) return;
+      setWpPos({
+        x: wpDragRef.current.origX + (ev.clientX - wpDragRef.current.startX),
+        y: wpDragRef.current.origY + (ev.clientY - wpDragRef.current.startY),
+      });
+    };
+    const onUp = () => {
+      wpDragRef.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
 
   // Load persisted wallpaper
   useEffect(() => {
@@ -304,16 +331,12 @@ export default function Desktop({ onLogOff }: DesktopProps) {
           <>
             <div className="absolute inset-0 z-[88]" onClick={() => setShowWallpaper(false)} />
             <motion.div
+              ref={wpRef}
               className="absolute z-[89]"
-              style={{
-                left: '50%', top: '50%',
-                transform: 'translate(-50%, -50%)',
-                background: '#ece9d8',
-                border: '2px solid #0a246a',
-                boxShadow: '4px 4px 18px rgba(0,0,0,0.5)',
-                width: 'min(360px, 95vw)',
-                fontFamily: 'Tahoma, sans-serif',
-              }}
+              style={wpPos
+                ? { left: wpPos.x, top: wpPos.y, background: '#ece9d8', border: '2px solid #0a246a', boxShadow: '4px 4px 18px rgba(0,0,0,0.5)', width: 'min(360px, 95vw)', fontFamily: 'Tahoma, sans-serif' }
+                : { left: '50%', top: '50%', transform: 'translate(-50%, -50%)', background: '#ece9d8', border: '2px solid #0a246a', boxShadow: '4px 4px 18px rgba(0,0,0,0.5)', width: 'min(360px, 95vw)', fontFamily: 'Tahoma, sans-serif' }
+              }
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1,   opacity: 1 }}
               exit={{    scale: 0.8, opacity: 0 }}
@@ -322,7 +345,8 @@ export default function Desktop({ onLogOff }: DesktopProps) {
             >
               {/* Title bar */}
               <div className="h-[26px] flex items-center justify-between px-2"
-                style={{ background: 'linear-gradient(180deg,#2c6fca 0%,#1244a8 100%)' }}>
+                style={{ background: 'linear-gradient(180deg,#2c6fca 0%,#1244a8 100%)', cursor: 'move' }}
+                onMouseDown={handleWpTitleMouseDown}>
                 <span className="text-white text-[11px] font-bold">🖼️ Personalize — Wallpaper</span>
                 <button
                   className="w-[18px] h-[18px] rounded-[2px] border text-white text-[10px] font-bold flex items-center justify-center"
