@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const siteUrl = "https://nischalbhandari.com.np";
@@ -77,6 +78,7 @@ export default function RootLayout({
       </head>
       <body className="bg-black overflow-hidden touch-none">
         {children}
+        <Analytics />
       </body>
     </html>
   );
