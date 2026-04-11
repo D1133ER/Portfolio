@@ -1,7 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+import GlitchText from './GlitchText';
 
 interface LoginScreenProps {
   onLogin: () => void;
@@ -16,19 +18,8 @@ function GlitchBackground() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d')!;
-
-    const resize = () => {
-      canvas.width  = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-    resize();
-    window.addEventListener('resize', resize);
-
-    const CELL  = 18;  // px per cell
-    const COLS  = Math.floor(canvas.width  / CELL);
-    const ROWS  = Math.floor(canvas.height / CELL);
-    const TOTAL = COLS * ROWS;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
     // Each cell has a "kind": normal | bright | highlight
     type Kind = 'normal' | 'bright' | 'highlight';
@@ -41,7 +32,7 @@ function GlitchBackground() {
       return 'normal';
     };
 
-    const cells: Cell[] = Array.from({ length: TOTAL }, () => {
+    const createCell = (): Cell => {
       const kind = pickKind();
       return {
         char:        GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)],
@@ -51,19 +42,47 @@ function GlitchBackground() {
         glitchTimer: Math.floor(Math.random() * 80),
         kind,
       };
-    });
+    };
+
+    let cols = 1;
+    let rows = 1;
+    let cellSize = 18;
+    let cells: Cell[] = [];
+
+    const rebuildGrid = () => {
+      const nextWidth = Math.max(1, Math.round(canvas.clientWidth));
+      const nextHeight = Math.max(1, Math.round(canvas.clientHeight));
+
+      canvas.width = nextWidth;
+      canvas.height = nextHeight;
+
+      cellSize = nextWidth < 480 ? 16 : 18;
+      cols = Math.max(1, Math.ceil(nextWidth / cellSize));
+      rows = Math.max(1, Math.ceil(nextHeight / cellSize));
+      cells = Array.from({ length: cols * rows }, createCell);
+    };
+
+    rebuildGrid();
+
+    const resizeObserver = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(rebuildGrid)
+      : null;
+
+    resizeObserver?.observe(canvas.parentElement ?? canvas);
+    window.addEventListener('resize', rebuildGrid);
+    window.addEventListener('orientationchange', rebuildGrid);
 
     let raf: number;
 
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.font = 'bold 15px monospace';
+      ctx.font = `bold ${Math.max(12, cellSize - 3)}px monospace`;
 
       cells.forEach((cell, idx) => {
-        const col = idx % COLS;
-        const row = Math.floor(idx / COLS);
-        const x   = col * CELL + 2;
-        const y   = row * CELL + 14;
+        const col = idx % cols;
+        const row = Math.floor(idx / cols);
+        const x   = col * cellSize + 2;
+        const y   = row * cellSize + (cellSize - 4);
 
         // Fade in/out
         cell.opacity += cell.speed * cell.dir;
@@ -102,7 +121,9 @@ function GlitchBackground() {
     raf = requestAnimationFrame(draw);
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener('resize', resize);
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', rebuildGrid);
+      window.removeEventListener('orientationchange', rebuildGrid);
     };
   }, []);
 
@@ -116,6 +137,16 @@ function GlitchBackground() {
 }
 
 export default function LoginScreen({ onLogin }: LoginScreenProps) {
+  const [glitchCycle, setGlitchCycle] = useState(0);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setGlitchCycle((prev) => prev + 1);
+    }, 4800);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
   return (
     <motion.div
       className="absolute inset-0 flex flex-col z-[90]"
@@ -129,7 +160,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
       <GlitchBackground />
       {/* Top bar */}
       <motion.div
-        className="w-full text-center py-3 px-5 text-white border-b-2 border-blue-400 relative z-[1]"
+        className="xp-login-topbar w-full text-center py-3 px-5 text-white border-b-2 border-blue-400 relative z-[1]"
         style={{ background: 'linear-gradient(180deg, #2c5fa8 0%, #1a3c7a 100%)' }}
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -140,9 +171,30 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
       </motion.div>
 
       {/* Main login area */}
-      <div className="flex-1 min-h-0 flex flex-col items-center justify-center gap-3 landscape:gap-1 landscape:py-2 overflow-y-auto relative z-[1]">
+      <div className="xp-login-main flex-1 min-h-0 flex flex-col items-center justify-center gap-3 landscape:gap-1 landscape:py-2 overflow-y-auto relative z-[1]">
         <motion.div
-          className="flex flex-col items-center gap-3 px-6 sm:px-9 py-5 rounded cursor-pointer w-[90vw] max-w-[280px]"
+          className="xp-login-wordmark px-4 text-center select-none pointer-events-none"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.5 }}
+          style={{ textShadow: '0 2px 12px rgba(3, 12, 35, 0.9)' }}
+        >
+          <GlitchText
+            key={`guru-knows-${glitchCycle}`}
+            text='"Guru Knows"'
+            duration={1300}
+            className="xp-login-wordmark-title block font-bold text-white"
+          />
+          <GlitchText
+            key={`gurucool-${glitchCycle}`}
+            text='- GuruCOOL'
+            duration={1650}
+            className="xp-login-wordmark-subtitle mt-1 block font-bold text-[#ffe8a6]"
+          />
+        </motion.div>
+
+        <motion.div
+          className="xp-login-card flex flex-col items-center gap-3 px-6 sm:px-9 py-5 rounded cursor-pointer w-[90vw] max-w-[280px]"
           style={{
             background: 'rgba(255,255,255,0.15)',
             border: '1px solid rgba(255,255,255,0.3)',
@@ -195,7 +247,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
 
       {/* Bottom bar */}
       <motion.div
-        className="w-full flex justify-between items-center px-5 py-2.5 border-t-2 border-blue-400 relative z-[1]"
+        className="xp-login-bottom-bar w-full flex justify-between items-center px-5 py-2.5 border-t-2 border-blue-400 relative z-[1]"
         style={{ background: 'linear-gradient(180deg, #1a3c7a 0%, #0f2752 100%)' }}
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

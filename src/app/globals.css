@@ -102,6 +102,33 @@ html, body {
   padding-left: env(safe-area-inset-left, 0px);
 }
 
+.xp-login-wordmark-title {
+  font-size: clamp(1.35rem, 4.6vw, 2.2rem);
+  letter-spacing: 0.08em;
+}
+
+.xp-login-wordmark-subtitle {
+  font-size: clamp(0.82rem, 2.5vw, 1.05rem);
+  letter-spacing: 0.2em;
+}
+
+@media screen and (max-width: 640px) {
+  .xp-login-topbar {
+    padding-top: 0.65rem !important;
+    padding-bottom: 0.65rem !important;
+  }
+
+  .xp-login-bottom-bar {
+    padding-top: 0.55rem !important;
+    padding-bottom: 0.55rem !important;
+  }
+
+  .xp-login-card {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+}
+
 /* ── Mobile landscape fixes ──────────────────────────────────────────────── */
 /* Short landscape screens (e.g. phones rotated): hide decorative quote carousel */
 @media screen and (orientation: landscape) and (max-height: 480px) {
@@ -121,6 +148,37 @@ html, body {
   }
 
   /* Login screen: reduce avatar and gaps */
+  .xp-login-topbar {
+    padding-top: 0.45rem !important;
+    padding-bottom: 0.45rem !important;
+  }
+
+  .xp-login-bottom-bar {
+    padding-top: 0.4rem !important;
+    padding-bottom: 0.4rem !important;
+  }
+
+  .xp-login-main {
+    gap: 0.5rem !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  .xp-login-card {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    gap: 0.4rem !important;
+  }
+
+  .xp-login-wordmark-title {
+    font-size: 1rem !important;
+  }
+
+  .xp-login-wordmark-subtitle {
+    font-size: 0.68rem !important;
+    letter-spacing: 0.12em;
+  }
+
   .xp-login-avatar {
     width: 2.5rem !important;
     height: 2.5rem !important;

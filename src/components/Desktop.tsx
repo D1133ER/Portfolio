@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useCallback, useEffect, memo, useRef } from 'react';
+import { useState, useCallback, useEffect, memo, useRef, type CSSProperties } from 'react';
 import dynamic from 'next/dynamic';
 import { useWindows } from '@/context/WindowContext';
 import { playStartupChime } from '@/utils/sounds';
@@ -41,15 +41,77 @@ const CLOUDS = [
   { id: 4, delay: 18, duration: 85, top: 12, size: 150, opacity: 0.3  },
 ] as const;
 
+const GURU_WALLPAPER_URL = '/wallpapers/gurucool-logic-imagination.png';
+
+type WallpaperId = 'bliss' | 'luna' | 'azul' | 'autumn' | 'matrix' | 'gurucool';
+
+type WallpaperOption = {
+  id: WallpaperId;
+  label: string;
+  description: string;
+  previewStyle: CSSProperties;
+  desktopStyle: CSSProperties;
+  hideSceneDecor?: boolean;
+};
+
 // XP-inspired wallpaper themes
-const WALLPAPERS = [
-  { id: 'bliss',    label: 'Bliss',       bg: 'linear-gradient(170deg, #d8c4a0 0%, #c9a870 35%, #b89060 65%, #9a7040 100%)' },
-  { id: 'luna',     label: 'Luna',        bg: 'linear-gradient(180deg, #1a6fcd 0%, #2e8de8 40%, #6bb3f5 100%)' },
-  { id: 'azul',     label: 'Azul',        bg: 'linear-gradient(170deg, #001840 0%, #003070 45%, #0050a0 100%)' },
-  { id: 'autumn',   label: 'Autumn',      bg: 'linear-gradient(160deg, #8b3a12 0%, #c4621a 40%, #e8921a 100%)' },
-  { id: 'matrix',   label: 'Matrix',      bg: 'linear-gradient(180deg, #000 0%, #001800 50%, #003000 100%)' },
-] as const;
-type WallpaperId = typeof WALLPAPERS[number]['id'];
+const WALLPAPERS: readonly WallpaperOption[] = [
+  {
+    id: 'bliss',
+    label: 'Bliss',
+    description: 'Warm XP-inspired dusk gradient with the classic desktop scene.',
+    previewStyle: { background: 'linear-gradient(170deg, #d8c4a0 0%, #c9a870 35%, #b89060 65%, #9a7040 100%)' },
+    desktopStyle: { background: 'linear-gradient(170deg, #d8c4a0 0%, #c9a870 35%, #b89060 65%, #9a7040 100%)' },
+  },
+  {
+    id: 'luna',
+    label: 'Luna',
+    description: 'Bright blue sky tones with the animated XP cloud scene.',
+    previewStyle: { background: 'linear-gradient(180deg, #1a6fcd 0%, #2e8de8 40%, #6bb3f5 100%)' },
+    desktopStyle: { background: 'linear-gradient(180deg, #1a6fcd 0%, #2e8de8 40%, #6bb3f5 100%)' },
+  },
+  {
+    id: 'azul',
+    label: 'Azul',
+    description: 'Deep evening blues for a darker desktop mood.',
+    previewStyle: { background: 'linear-gradient(170deg, #001840 0%, #003070 45%, #0050a0 100%)' },
+    desktopStyle: { background: 'linear-gradient(170deg, #001840 0%, #003070 45%, #0050a0 100%)' },
+  },
+  {
+    id: 'autumn',
+    label: 'Autumn',
+    description: 'Orange and amber tones with the same XP mountain foreground.',
+    previewStyle: { background: 'linear-gradient(160deg, #8b3a12 0%, #c4621a 40%, #e8921a 100%)' },
+    desktopStyle: { background: 'linear-gradient(160deg, #8b3a12 0%, #c4621a 40%, #e8921a 100%)' },
+  },
+  {
+    id: 'matrix',
+    label: 'Matrix',
+    description: 'Dark monochrome green for the retro terminal vibe.',
+    previewStyle: { background: 'linear-gradient(180deg, #000 0%, #001800 50%, #003000 100%)' },
+    desktopStyle: { background: 'linear-gradient(180deg, #000 0%, #001800 50%, #003000 100%)' },
+  },
+  {
+    id: 'gurucool',
+    label: 'GuruCOOL',
+    description: 'Uploaded artwork with the "Guru Knows" theme and the logic-versus-imagination scene.',
+    previewStyle: {
+      backgroundColor: '#0b1732',
+      backgroundImage: `url(${GURU_WALLPAPER_URL})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+    },
+    desktopStyle: {
+      backgroundColor: '#0b1732',
+      backgroundImage: `url(${GURU_WALLPAPER_URL})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+    },
+    hideSceneDecor: true,
+  },
+];
 
 type CtxMenu = { x: number; y: number } | null;
 
@@ -123,14 +185,34 @@ interface DesktopProps {
 export default function Desktop({ onLogOff }: DesktopProps) {
   const { openWindow, closeWindow, minimizeAllWindows, windows } = useWindows();
   const [ctxMenu, setCtxMenu] = useState<CtxMenu>(null);
-  const [wallpaper, setWallpaper] = useState<WallpaperId>('bliss');
+  const [wallpaper, setWallpaper] = useState<WallpaperId>(() => {
+    if (typeof window === 'undefined') return 'bliss';
+
+    try {
+      const saved = localStorage.getItem('nischal-wallpaper') as WallpaperId | null;
+      if (saved && WALLPAPERS.some((option) => option.id === saved)) {
+        return saved;
+      }
+    } catch {
+      /* ignore */
+    }
+
+    return 'bliss';
+  });
   const [showWallpaper, setShowWallpaper] = useState(false);
   const [wpPos, setWpPos] = useState<{ x: number; y: number } | null>(null);
   const wpRef = useRef<HTMLDivElement>(null);
   const wpDragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
 
-  // Reset position each time the dialog opens
-  useEffect(() => { if (showWallpaper) setWpPos(null); }, [showWallpaper]);
+  const openWallpaperPicker = useCallback(() => {
+    setWpPos(null);
+    setShowWallpaper(true);
+  }, []);
+
+  const closeWallpaperPicker = useCallback(() => {
+    setWpPos(null);
+    setShowWallpaper(false);
+  }, []);
 
   const startWpDrag = (startX: number, startY: number) => {
     const rect = wpRef.current?.getBoundingClientRect();
@@ -177,31 +259,29 @@ export default function Desktop({ onLogOff }: DesktopProps) {
     window.addEventListener('touchend', onEnd);
   };
 
-  // Load persisted wallpaper
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('nischal-wallpaper') as WallpaperId | null;
-      if (saved && WALLPAPERS.some((w) => w.id === saved)) setWallpaper(saved);
-    } catch { /* ignore */ }
-  }, []);
-
   const selectWallpaper = (id: WallpaperId) => {
     setWallpaper(id);
     try { localStorage.setItem('nischal-wallpaper', id); } catch { /* ignore */ }
-    setShowWallpaper(false);
+    closeWallpaperPicker();
   };
+
+  const selectedWallpaper = WALLPAPERS.find((w) => w.id === wallpaper) ?? WALLPAPERS[0];
 
   // Track which windows have been opened at least once (for lazy mounting)
   const [mountedWindows, setMountedWindows] = useState<Set<string>>(new Set());
   useEffect(() => {
     const openIds = windows.filter((w) => w.isOpen).map((w) => w.id);
-    if (openIds.length > 0) {
+    if (openIds.length === 0) return;
+
+    const frame = window.requestAnimationFrame(() => {
       setMountedWindows((prev) => {
         const next = new Set(prev);
         openIds.forEach((id) => next.add(id));
         return next;
       });
-    }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
   }, [windows]);
 
   // Auto-open the About window when the desktop first loads + play startup chime
@@ -263,7 +343,7 @@ export default function Desktop({ onLogOff }: DesktopProps) {
     { label: 'Open Terminal',          action: () => { closeCtx(); openWindow('terminal'); } },
     { label: 'Open Task Manager',     action: () => { closeCtx(); openWindow('taskmanager'); } },
     null,
-    { label: 'Personalize…',          action: () => { closeCtx(); setShowWallpaper(true); } },
+    { label: 'Personalize…',          action: () => { closeCtx(); openWallpaperPicker(); } },
     { label: 'Properties',            action: () => { closeCtx(); openWindow('about'); } },
   ];
 
@@ -279,11 +359,11 @@ export default function Desktop({ onLogOff }: DesktopProps) {
       {/* ── Background ── */}
       <div
         className="absolute inset-0 transition-all duration-700"
-        style={{ background: WALLPAPERS.find((w) => w.id === wallpaper)?.bg }}
+        style={selectedWallpaper.desktopStyle}
       />
 
       {/* ── Animated clouds ── */}
-      {CLOUDS.map((c) => (
+      {!selectedWallpaper.hideSceneDecor && CLOUDS.map((c) => (
         <div
           key={c.id}
           className="absolute pointer-events-none"
@@ -309,17 +389,19 @@ export default function Desktop({ onLogOff }: DesktopProps) {
       ))}
 
       {/* ── Mountain ridges ── */}
-      <div className="absolute left-0 right-0 h-[200px]" style={{ bottom: 'calc(30px + env(safe-area-inset-bottom, 0px))' }}>
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `
-              radial-gradient(ellipse 120% 60% at 30% 110%, #a07040 60%, transparent 70%),
-              radial-gradient(ellipse 80%  50% at 80% 120%, #8a6030 60%, transparent 72%)
-            `,
-          }}
-        />
-      </div>
+      {!selectedWallpaper.hideSceneDecor && (
+        <div className="absolute left-0 right-0 h-[200px]" style={{ bottom: 'calc(30px + env(safe-area-inset-bottom, 0px))' }}>
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `
+                radial-gradient(ellipse 120% 60% at 30% 110%, #a07040 60%, transparent 70%),
+                radial-gradient(ellipse 80%  50% at 80% 120%, #8a6030 60%, transparent 72%)
+              `,
+            }}
+          />
+        </div>
+      )}
 
       <DesktopIcons />
 
@@ -342,7 +424,7 @@ export default function Desktop({ onLogOff }: DesktopProps) {
       {mountedWindows.has('notepad') && <NotepadWindow />}
       {mountedWindows.has('taskmanager') && <TaskManagerWindow />}
 
-      <QuoteCarousel />
+      {!selectedWallpaper.hideSceneDecor && <QuoteCarousel />}
 
       <Taskbar onLogOff={onLogOff} />
       <BalloonNotification />
@@ -353,13 +435,13 @@ export default function Desktop({ onLogOff }: DesktopProps) {
       <AnimatePresence>
         {showWallpaper && (
           <>
-            <div className="absolute inset-0 z-[88]" onClick={() => setShowWallpaper(false)} />
+            <div className="absolute inset-0 z-[88]" onClick={closeWallpaperPicker} />
             <motion.div
               ref={wpRef}
               className="absolute z-[89]"
               style={wpPos
-                ? { left: wpPos.x, top: wpPos.y, background: '#ece9d8', border: '2px solid #0a246a', boxShadow: '4px 4px 18px rgba(0,0,0,0.5)', width: 'min(360px, 95vw)', fontFamily: 'Tahoma, sans-serif' }
-                : { left: '50%', top: '50%', transform: 'translate(-50%, -50%)', background: '#ece9d8', border: '2px solid #0a246a', boxShadow: '4px 4px 18px rgba(0,0,0,0.5)', width: 'min(360px, 95vw)', fontFamily: 'Tahoma, sans-serif' }
+                ? { left: wpPos.x, top: wpPos.y, background: '#ece9d8', border: '2px solid #0a246a', boxShadow: '4px 4px 18px rgba(0,0,0,0.5)', width: 'min(360px, 95vw)', maxHeight: 'calc(100dvh - 20px)', overflow: 'hidden', fontFamily: 'Tahoma, sans-serif' }
+                : { left: '50%', top: '50%', transform: 'translate(-50%, -50%)', background: '#ece9d8', border: '2px solid #0a246a', boxShadow: '4px 4px 18px rgba(0,0,0,0.5)', width: 'min(360px, 95vw)', maxHeight: 'calc(100dvh - 20px)', overflow: 'hidden', fontFamily: 'Tahoma, sans-serif' }
               }
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1,   opacity: 1 }}
@@ -376,25 +458,38 @@ export default function Desktop({ onLogOff }: DesktopProps) {
                 <button
                   className="w-[18px] h-[18px] rounded-[2px] border text-white text-[10px] font-bold flex items-center justify-center"
                   style={{ background: 'linear-gradient(180deg,#e86060 0%,#c03030 100%)', borderColor: '#901010' }}
-                  onClick={() => setShowWallpaper(false)}
+                  onClick={closeWallpaperPicker}
                   aria-label="Close"
                 >✕</button>
               </div>
               {/* Wallpaper grid */}
-              <div className="p-4">
+              <div className="p-4 overflow-y-auto">
                 <p className="text-[10px] text-[#555] mb-3">Select a wallpaper theme:</p>
+                <div className="mb-4 border border-[#b8b5a8] p-2.5" style={{ background: 'linear-gradient(180deg,#f7f4ea 0%,#ece9d8 100%)' }}>
+                  <div
+                    className="w-full rounded border border-[#999]"
+                    style={{
+                      aspectRatio: '16 / 10',
+                      ...selectedWallpaper.previewStyle,
+                    }}
+                  />
+                  <div className="mt-2">
+                    <div className="text-[10px] font-bold text-[#1244a8]">{selectedWallpaper.label}</div>
+                    <p className="text-[9px] text-[#666] mt-1 leading-snug">{selectedWallpaper.description}</p>
+                  </div>
+                </div>
                 <div className="grid grid-cols-3 gap-2 mb-4">
                   {WALLPAPERS.map((wp) => (
                     <button
                       key={wp.id}
                       onClick={() => selectWallpaper(wp.id)}
-                      className="flex flex-col items-center gap-1"
+                      className="flex flex-col items-center gap-1 text-left"
                     >
                       <div
                         className="w-full rounded"
                         style={{
                           height: 48,
-                          background: wp.bg,
+                          ...wp.previewStyle,
                           border: wallpaper === wp.id ? '2px solid #316ac5' : '2px solid #999',
                           boxShadow: wallpaper === wp.id ? '0 0 0 1px #316ac5' : undefined,
                         }}
@@ -407,7 +502,7 @@ export default function Desktop({ onLogOff }: DesktopProps) {
                   <button
                     className="text-[10px] px-4 py-1 border border-[#999] hover:bg-[#d4d0c8]"
                     style={{ background: 'linear-gradient(180deg,#ece9d8 0%,#d4d0c8 100%)' }}
-                    onClick={() => setShowWallpaper(false)}
+                    onClick={closeWallpaperPicker}
                   >Cancel</button>
                 </div>
               </div>
