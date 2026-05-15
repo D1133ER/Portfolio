@@ -48,7 +48,14 @@ Available commands:
   project <n> Detail for one project (n = 1-${projects.length})
   edu         Academic background
   contact     Open Contact window
-  open <win>  Open a window  (about | experience | skills | education | projects | contact)
+  open <win>  Open any window  (about | experience | skills | education | projects |
+               contact | terminal | quiz | radar | timeline | certs | ratecard |
+               snippets | shortcuts | minesweeper | notepad | taskmanager |
+               paint | calculator | controlpanel | mycomputer | ie | mediaplayer)
+  resume      Download CV / resume PDF  (alias: cv)
+  github      Open GitHub profile in browser
+  linkedin    Open LinkedIn profile in browser
+  bsod        ??? (just try it)
   date        Current date & time
   sysinfo     System information
   neofetch    System overview (portfolio stats)
@@ -93,7 +100,7 @@ xXXXXXXXXXXXXXXXXXXXXx  Terminal:  Custom CmdWindow.exe
  XXXXXXXXXXXXXXXXXXXX   CPU:       Full-Stack Dev @ 100%
   XXXXXXXXXXXXXXXXXX    Memory:    10 Skills / 10 Skills used
    XXXXXXXXXXXXXXXX     Uptime:    ${uptime} (this session)
-    XXXXXXXXXXXX        Packages:  17+ windows, 50+ cmds
+    XXXXXXXXXXXX        Packages:  23+ windows, 50+ cmds
      XXXXXXXXXX        
       XXXXXXXX          Skills:    JS • Angular • Python • Node
        XXXXXX           Projects:  ${projects.length} · Certs: 9 · Langs: 4
@@ -149,7 +156,13 @@ function buildProjects() {
 function buildProjectDetail(n: number) {
   const p = projects[n - 1];
   if (!p) return `No project #${n}. Use 'projects' to see the list.`;
-  return `${p.icon}  ${p.name}\n${hr()}\nDescription:\n  ${p.description}\n\nTechnologies:\n  ${p.tech.join(' • ')}\n${hr()}`;
+  const links: string[] = [];
+  if (p.github) links.push(`GitHub : ${p.github}`);
+  if (p.live)   links.push(`Live   : ${p.live}`);
+  const linksSection = links.length > 0
+    ? `\n\nLinks:\n${links.map((l) => `  ${l}`).join('\n')}`
+    : '';
+  return `${p.icon}  ${p.name}\n${hr()}\nDescription:\n  ${p.description}\n\nTechnologies:\n  ${p.tech.join(' • ')}${linksSection}\n${hr()}`;
 }
 
 function buildEdu() {
@@ -200,6 +213,7 @@ export default function CmdWindow() {
   const [history, setHistory] = useState<string[]>([]);
   const [histIdx, setHistIdx] = useState(-1);
   const [matrix,  setMatrix]  = useState(false);
+  const [bsod,    setBsod]    = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -317,13 +331,18 @@ export default function CmdWindow() {
         break;
 
       case 'open': {
-        const validWindows = ['about', 'experience', 'skills', 'education', 'projects', 'contact', 'terminal'];
-        const target = arg.toLowerCase();
+        const validWindows: Parameters<typeof openWindow>[0][] = [
+          'about', 'experience', 'skills', 'education', 'projects', 'contact',
+          'terminal', 'quiz', 'radar', 'timeline', 'certs', 'ratecard',
+          'snippets', 'shortcuts', 'minesweeper', 'notepad', 'taskmanager',
+          'paint', 'calculator', 'controlpanel', 'mycomputer', 'ie', 'mediaplayer',
+        ];
+        const target = arg.toLowerCase() as Parameters<typeof openWindow>[0];
         if (validWindows.includes(target)) {
-          openWindow(target as Parameters<typeof openWindow>[0]);
+          openWindow(target);
           push('success', `Opening '${target}' window...`);
         } else {
-          push('error', `Unknown window '${arg}'. Valid: ${validWindows.join(', ')}`);
+          push('error', `Unknown window '${arg}'. Type 'help' to see all available windows.`);
         }
         break;
       }
@@ -337,6 +356,13 @@ export default function CmdWindow() {
         push('success', 'Initiating matrix protocol...\n(Click anywhere or press Esc to exit)');
         setMatrix(true);
         break;
+
+      case 'bsod':
+      case 'bluescreen': {
+        push('error', '*** STOP: 0xNISCHAL_XP_EASTER_EGG *** Initiating...');
+        setTimeout(() => setBsod(true), 600);
+        break;
+      }
 
       case 'cls':
       case 'clear':
@@ -430,9 +456,31 @@ export default function CmdWindow() {
         openWindow('taskmanager');
         break;
 
+      case 'resume':
+      case 'cv': {
+        push('success', 'Opening CV for download...');
+        const link = document.createElement('a');
+        link.href     = '/nischal-bhandari-cv.pdf';
+        link.download = 'Nischal-Bhandari-CV.pdf';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        break;
+      }
+
+      case 'github':
+        push('success', 'Opening GitHub profile...');
+        window.open('https://github.com/Nischal00', '_blank', 'noopener,noreferrer');
+        break;
+
+      case 'linkedin':
+        push('success', 'Opening LinkedIn profile...');
+        window.open('https://www.linkedin.com/in/nischal-bhandari-708b712a3/', '_blank', 'noopener,noreferrer');
+        break;
+
       default:
         // Check if it's a partial match suggestion
-        const allCmds = ['help','whoami','skills','softskills','languages','experience','exp','projects','project','edu','education','sysinfo','contact','open','date','matrix','cls','exit','ls','dir','ping','ipconfig','ver','echo','hire','neofetch','mines','notepad','taskmgr'];
+        const allCmds = ['help','whoami','skills','softskills','languages','experience','exp','projects','project','edu','education','sysinfo','contact','open','date','matrix','cls','exit','ls','dir','ping','ipconfig','ver','echo','hire','neofetch','mines','notepad','taskmgr','resume','cv','github','linkedin','bsod'];
         const similar = allCmds.filter((c) => c.startsWith(lower.slice(0, 3)));
         const hint = similar.length > 0 ? `\nDid you mean: ${similar.join(', ')} ?` : '';
         push('error', `'${cmd}' is not recognized as an internal or external command.${hint}\nType 'help' for available commands.`);
@@ -461,7 +509,7 @@ export default function CmdWindow() {
     } else if (e.key === 'Tab') {
       // Tab completion
       e.preventDefault();
-      const cmds = ['help','whoami','skills','softskills','languages','experience','exp','projects','project','edu','sysinfo','contact','open','date','matrix','cls','exit','ls','dir','ping','ipconfig','ver','echo','hire','neofetch','mines','notepad','taskmgr'];
+      const cmds = ['help','whoami','skills','softskills','languages','experience','exp','projects','project','edu','sysinfo','contact','open','date','matrix','cls','exit','ls','dir','ping','ipconfig','ver','echo','hire','neofetch','mines','notepad','taskmgr','resume','cv','github','linkedin','bsod'];
       const match = cmds.find((c) => c.startsWith(input.toLowerCase()) && c !== input.toLowerCase());
       if (match) setInput(match);
     }
@@ -477,7 +525,44 @@ export default function CmdWindow() {
 
   if (!win?.isOpen) return null;
 
+  const BSOD_TEXT = `A problem has been detected and Windows has been shut down to
+prevent damage to your computer.
+
+NISCHAL_XP_EASTER_EGG_FOUND
+
+If this is the first time you've seen this Stop error screen,
+restart your computer. If this screen appears again:
+
+  Check your portfolio thoroughly.
+  Open the Terminal and type 'hire'.
+  Contact Nischal immediately.
+
+Technical information:
+
+*** STOP: 0x0000HIRE (0xNISCHAL00, 0x4A4F424F, 0x46464552, 0x21212121)
+
+Beginning dump of physical memory...
+Physical memory dump complete.
+
+Contact nischalbhandari11@gmail.com or your nearest recruiter.`;
+
   return (
+    <>
+      {/* ── BSOD overlay (covers entire viewport) ── */}
+      {bsod && (
+        <div
+          className="fixed inset-0 z-[9999] flex flex-col p-8 cursor-pointer select-none"
+          style={{ background: '#0000aa', color: '#fff', fontFamily: 'Courier New, monospace', fontSize: 13, lineHeight: 1.6 }}
+          onClick={() => setBsod(false)}
+        >
+          <div className="inline-block px-2 mb-4" style={{ background: '#aaa', color: '#0000aa', fontWeight: 'bold', fontSize: 13 }}>
+            Windows
+          </div>
+          <pre className="whitespace-pre-wrap">{BSOD_TEXT}</pre>
+          <div className="mt-6 text-[11px] opacity-70">(Click anywhere to dismiss)</div>
+        </div>
+      )}
+
     <XPWindow
       id="terminal"
       menuItems={['File', 'Edit', 'View', 'Help']}
@@ -530,5 +615,6 @@ export default function CmdWindow() {
         </div>
       )}
     </XPWindow>
+    </>
   );
 }

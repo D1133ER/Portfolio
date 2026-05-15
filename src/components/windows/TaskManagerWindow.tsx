@@ -29,6 +29,8 @@ const WIN_EXE: Record<string, string> = {
   timeline: 'timeline.exe', certs: 'certmgmt.exe', ratecard: 'services.exe',
   snippets: 'notepad++.exe', shortcuts: 'help.exe',
   minesweeper: 'winmine.exe', notepad: 'notepad.exe', taskmanager: 'taskmgr.exe',
+  paint: 'mspaint.exe', calculator: 'calc.exe', controlpanel: 'control.exe',
+  mycomputer: 'mycomp.exe', ie: 'iexplore.exe', mediaplayer: 'wmplayer.exe',
 };
 
 /* ── Performance graph hook ── */
@@ -98,17 +100,31 @@ export default function TaskManagerWindow() {
   const [tab, setTab] = useState<'applications' | 'processes' | 'performance'>('applications');
   const { cpu, mem } = usePerformanceData(tab === 'performance');
 
+  // Stable random data per window process — generated once, not on every render
+  const stableDataRef = useRef<Record<string, { cpu: number; mem: string }>>({});
+  function stableData(id: string) {
+    if (!stableDataRef.current[id]) {
+      stableDataRef.current[id] = {
+        cpu: Math.floor(Math.random() * 3),
+        mem: `${(Math.random() * 8 + 2).toFixed(0)},${Math.floor(Math.random() * 900 + 100)} K`,
+      };
+    }
+    return stableDataRef.current[id];
+  }
+
   const openWins = windows.filter((w) => w.isOpen);
 
-  // Processes: combine fake + real open windows
   const processes = [
-    ...openWins.map((w, i) => ({
-      name: WIN_EXE[w.id] ?? `${w.id}.exe`,
-      pid: 2000 + i * 73,
-      cpu: Math.floor(Math.random() * 3),
-      mem: `${(Math.random() * 8 + 2).toFixed(0)},000 K`,
-      windowId: w.id as WindowId,
-    })),
+    ...openWins.map((w, i) => {
+      const d = stableData(w.id);
+      return {
+        name: WIN_EXE[w.id] ?? `${w.id}.exe`,
+        pid:  2000 + i * 73,
+        cpu:  d.cpu,
+        mem:  d.mem,
+        windowId: w.id as WindowId,
+      };
+    }),
     ...FAKE_PROCS,
   ];
 

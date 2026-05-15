@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
+import PwaRegistrar from '@/components/PwaRegistrar';
+
 const siteUrl = "https://nischalbhandari.com.np";
 
 export const metadata: Metadata = {
@@ -29,12 +31,21 @@ export const metadata: Metadata = {
     description:
       "Windows XP themed portfolio of Nischal Bhandari — Full Stack Developer & IT Professional.",
     siteName: "Nischal Bhandari Portfolio",
+    images: [
+      {
+        url: `${siteUrl}/api/og`,
+        width: 1200,
+        height: 630,
+        alt: "Nischal Bhandari — Full Stack Developer & IT Professional",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Nischal Bhandari — Full Stack Developer",
     description:
       "Windows XP themed portfolio of Nischal Bhandari — Full Stack Developer & IT Professional.",
+    images: [`${siteUrl}/api/og`],
   },
   robots: {
     index: true,
@@ -76,6 +87,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-black overflow-hidden touch-none">
+        <PwaRegistrar />
         {children}
       </body>
     </html>

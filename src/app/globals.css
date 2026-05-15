@@ -12,6 +12,19 @@
   --font-xp: Tahoma, "MS Sans Serif", Arial, sans-serif;
 }
 
+/* ── XP theme CSS custom properties (defaults = Luna) ──────────────────────── */
+/* ThemeContext overrides these at runtime via an injected <style> tag.         */
+:root {
+  --tb-from: #2c6fca;  --tb-mid: #1748b0;   --tb-to: #1244a8;
+  --tb-ia-from: #7a96c2;                     --tb-ia-to: #4a6490;
+  --tk-from: #2573c2;                        --tk-to: #1244a0;
+  --st-from: #5fad2a;                        --st-to: #2d7012;
+  --st-active-from: #2d6e10;                 --st-active-to: #163d06;
+  --accent: #316ac5;
+  --win-bg: #ece9d8;
+  --win-border: #0a246a;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -86,6 +99,65 @@ html, body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ── Touch device improvements ──────────────────────────────────────────────── */
+/* Prevent accidental double-tap zoom on interactive elements */
+button, a, [role="button"] {
+  touch-action: manipulation;
+}
+
+/* Focus ring for keyboard navigation */
+[role="button"]:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #316ac5;
+  outline-offset: 2px;
+}
+
+/* Larger touch targets for mobile scrolling inside windows */
+@media (pointer: coarse) {
+  .xp-window-content {
+    scroll-padding: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Slightly larger taskbar on touch devices for easier tapping */
+  .xp-taskbar {
+    height: calc(36px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* ── XP title bar touch improvements ─────────────────────────────── */
+/* Taller, easier-to-grab title bar on touch screens */
+.xp-titlebar {
+  height: 26px;
+  min-height: 26px;
+}
+@media (pointer: coarse) {
+  .xp-titlebar {
+    height: 38px !important;
+    min-height: 38px !important;
+  }
+  /* Visual drag grip dots — only shown on touch */
+  .xp-drag-grip { display: flex !important; }
+  /* Fatter resize handles for touch */
+  .xp-resize-corner { width: 20px !important; height: 20px !important; }
+  .xp-resize-edge-h { height: 8px !important; }
+  .xp-resize-edge-v { width: 8px !important; }
+}
+/* Drag grip is hidden on desktop */
+.xp-drag-grip { display: none; }
+
+/* ── Grab cursor during window drag ─────────────────────────────── */
+.xp-grabbing, .xp-grabbing * { cursor: grabbing !important; }
+
+/* ── Mobile-only utility (FAB dock, etc.) ───────────────────────── */
+.xp-mobile-only  { display: none !important; }
+.xp-desktop-only { display: flex !important; }
+@media (max-width: 480px) and (pointer: coarse) {
+  .xp-mobile-only  { display: flex !important; }
+  /* Optionally hide noisy items on tiny screens */
 }
 
 /* ── Safe-area / notch insets (viewport-fit=cover) ──────────────────────── */

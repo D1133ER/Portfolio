@@ -1,9 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
+import { ss, STORAGE_KEYS } from '@/utils/storage';
 import { WindowId, WindowState } from '@/types';
-
-const STORAGE_KEY = 'nischal-portfolio-windows';
 
 const defaultWindows: WindowState[] = [
   { id: 'about',      title: 'System Properties',              icon: '🖥️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 80,  y: 40  }, size: { width: 420, height: 420 } },
@@ -23,6 +22,12 @@ const defaultWindows: WindowState[] = [
   { id: 'minesweeper',  title: 'Minesweeper',                     icon: '💣', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 240, y: 100 }, size: { width: 320, height: 400 } },
   { id: 'notepad',      title: 'Untitled — Notepad',              icon: '🗒️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 180, y: 80  }, size: { width: 480, height: 380 } },
   { id: 'taskmanager',  title: 'Windows Task Manager',            icon: '📋', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 160, y: 70  }, size: { width: 500, height: 440 } },
+  { id: 'paint',        title: 'Untitled — Paint',                icon: '🎨', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 80,  y: 40  }, size: { width: 640, height: 520 } },
+  { id: 'calculator',   title: 'Calculator',                      icon: '🔢', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 300, y: 120 }, size: { width: 240, height: 280 } },
+  { id: 'controlpanel', title: 'Control Panel',                   icon: '⚙️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 100, y: 50  }, size: { width: 560, height: 440 } },
+  { id: 'mycomputer',   title: 'My Computer',                     icon: '💻', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 90,  y: 45  }, size: { width: 580, height: 460 } },
+  { id: 'ie',           title: 'Internet Explorer',               icon: '🌐', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 110, y: 55  }, size: { width: 700, height: 520 } },
+  { id: 'mediaplayer',  title: 'Windows Media Player',            icon: '▶️', isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, position: { x: 130, y: 60  }, size: { width: 580, height: 420 } },
 ];
 
 type Action =
@@ -44,17 +49,13 @@ let zCounter = 10;
 function loadPersistedState(): WindowState[] | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as WindowState[];
-    // Validate shape — every defaultWindow ID must be present (ignore extra)
+    const parsed = ss.get<WindowState[]>(STORAGE_KEYS.WINDOWS_STATE, []);
     if (
       !Array.isArray(parsed) ||
       !defaultWindows.every((dw) => parsed.some((p) => p.id === dw.id))
     ) {
       return null;
     }
-    // Restore zCounter to max saved value
     const maxZ = Math.max(...parsed.map((w) => w.zIndex), 10);
     zCounter = maxZ;
     return parsed;
@@ -64,10 +65,7 @@ function loadPersistedState(): WindowState[] | null {
 }
 
 function persistState(state: WindowState[]) {
-  if (typeof window === 'undefined') return;
-  try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch { /* ignore quota errors */ }
+  ss.set(STORAGE_KEYS.WINDOWS_STATE, state);
 }
 
 function reducer(state: WindowState[], action: Action): WindowState[] {

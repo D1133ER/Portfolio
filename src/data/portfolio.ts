@@ -6,6 +6,9 @@ export const jobData: Record<string, JobData> = {
     company: 'Kaski Sewa Hospital & Research Center',
     period: '2019 – 2024',
     icon: '🏥',
+    color: '#1244a8',
+    achievement: 'Managed entire hospital IT infrastructure solo for 5 years',
+    timelineSkills: ['Windows Server', 'Active Directory', 'Networking', 'SQL', 'Security'],
     duties: [
       'Managed and maintained the hospital IT infrastructure.',
       'Provided technical support for hardware and software issues.',
@@ -18,6 +21,9 @@ export const jobData: Record<string, JobData> = {
     company: 'Searchable Design LLC',
     period: '2021',
     icon: '💻',
+    color: '#2e7d32',
+    achievement: 'Built Angular web apps, code review experience in US startup',
+    timelineSkills: ['Angular', 'TypeScript', 'REST APIs', 'Git'],
     duties: [
       'Developed and maintained web applications using Angular.',
       'Collaborated with design teams to build user-friendly interfaces.',
@@ -29,6 +35,9 @@ export const jobData: Record<string, JobData> = {
     company: 'Skybase Innovation',
     period: '2024',
     icon: '🔬',
+    color: '#6a1b9a',
+    achievement: 'Improved test coverage and identified critical production bugs',
+    timelineSkills: ['Selenium', 'Jest', 'Bug Tracking', 'QA Processes'],
     duties: [
       'Performed software testing and quality assurance tasks.',
       'Identified bugs and contributed to process improvements.',
@@ -40,6 +49,9 @@ export const jobData: Record<string, JobData> = {
     company: 'Infomax',
     period: '2024',
     icon: '🌐',
+    color: '#e65100',
+    achievement: 'Delivered full-stack apps with modern React / Node stack',
+    timelineSkills: ['React', 'Node.js', 'PostgreSQL', 'Express'],
     duties: [
       'Developed and maintained full-stack web applications.',
       'Worked on both front-end and back-end technologies.',
@@ -50,6 +62,9 @@ export const jobData: Record<string, JobData> = {
     company: 'ING Skill Academy',
     period: 'Ongoing',
     icon: '📚',
+    color: '#00695c',
+    achievement: 'Teaching German B1 level to 20+ students',
+    timelineSkills: ['Curriculum Design', 'Teaching', 'German B1', 'Public Speaking'],
     duties: [
       'Delivered German language training and supported student learning.',
       'Developed lesson plans and engaging teaching materials.',
@@ -60,6 +75,9 @@ export const jobData: Record<string, JobData> = {
     company: 'Direct Marketing Unit',
     period: '2024 – Present',
     icon: '📊',
+    color: '#37474f',
+    achievement: 'Growing client base and expanding market presence',
+    timelineSkills: ['Business Dev', 'PR', 'Client Relations', 'Strategy'],
     duties: [
       'Managed client relationships and business growth initiatives.',
       'Handled communication and public relations activities.',
@@ -103,24 +121,29 @@ export const projects: ProjectData[] = [
     description: 'Full-stack web application for managing hospital operations, patient records, and staff scheduling.',
     tech: ['Angular', 'Node.js', 'MongoDB', 'TypeScript'],
     icon: '🏥',
+    github: 'https://github.com/Nischal00/hospital-management-system',
   },
   {
     name: 'E-Commerce Platform',
     description: 'Responsive online store with payment integration, inventory management, and admin dashboard.',
     tech: ['React', 'Express', 'PostgreSQL', 'Stripe'],
     icon: '🛒',
+    github: 'https://github.com/Nischal00/ecommerce-platform',
   },
   {
     name: 'Network Monitoring Tool',
     description: 'Real-time network monitoring and alerting system for IT infrastructure management.',
     tech: ['Python', 'Flask', 'WebSocket', 'Chart.js'],
     icon: '📡',
+    github: 'https://github.com/Nischal00/network-monitoring-tool',
   },
   {
     name: 'Portfolio Website (This!)',
     description: 'Windows XP themed interactive portfolio built with Next.js and Framer Motion.',
     tech: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Framer Motion'],
     icon: '💾',
+    github: 'https://github.com/Nischal00/nischal-portfolio',
+    live: 'https://nischalbhandari.com.np',
   },
 ];
 
@@ -159,7 +182,7 @@ export const techEvolution: TechPhase[] = [
   { year: 2022, phase: 'Full Stack',       techs: ['Node.js', 'MongoDB', 'Express', 'Python', 'Flask'],                               color: '#6a1b9a' },
   { year: 2023, phase: 'Security + QA',    techs: ['Pen Testing', 'Kali Linux', 'OWASP', 'Selenium', 'Jest'],                         color: '#b71c1c' },
   { year: 2024, phase: 'Full Stack Dev',   techs: ['React', 'Next.js', 'PostgreSQL', 'Docker', 'Stripe API'],                         color: '#e65100' },
-  { year: 2025, phase: 'Modern Stack',     techs: ['Next.js 15', 'Tailwind v4', 'Framer Motion', 'TypeScript', 'Canvas/WebAudio API'], color: '#00695c' },
+  { year: 2025, phase: 'Current Stack',     techs: ['Next.js 15', 'Tailwind v4', 'Framer Motion', 'TypeScript', 'Canvas/WebAudio API'], color: '#00695c' },
 ];
 
 // ── Certifications ────────────────────────────────────────────────────────────

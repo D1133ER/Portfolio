@@ -26,6 +26,7 @@ export default function XPWindow({
   noPadding = false,
 }: XPWindowProps) {
   const {
+    openWindow,
     windows,
     getWindow,
     closeWindow,
@@ -55,6 +56,18 @@ export default function XPWindow({
   const lastTapRef = useRef<number>(0);
   // System menu (title-bar right-click / icon click)
   const [sysMenu, setSysMenu] = useState<{ x: number; y: number } | null>(null);
+  // Menu bar dropdown
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const menuBarRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (!menuBarRef.current?.contains(e.target as Node)) setMenuOpen(null);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [menuOpen]);
 
   if (!win || !win.isOpen) return null;
 
@@ -73,6 +86,7 @@ export default function XPWindow({
     const parent = windowRef.current?.parentElement?.getBoundingClientRect();
     if (!parent) return;
     dragRef.current = { startX: e.clientX, startY: e.clientY, origX: win.position.x, origY: win.position.y };
+    document.body.classList.add('xp-grabbing');
 
     const onMove = (ev: MouseEvent) => {
       if (!dragRef.current) return;
@@ -87,6 +101,7 @@ export default function XPWindow({
     const onUp = () => {
       dragRef.current = null;
       cancelAnimationFrame(rafRef.current);
+      document.body.classList.remove('xp-grabbing');
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
     };
@@ -155,6 +170,31 @@ export default function XPWindow({
     { label: 'Close  Alt+F4', action: () => { playWindowClose(); closeWindow(id); setSysMenu(null); } },
   ];
 
+  // ── Menu bar dropdown definitions ────────────────────────────────────────────
+  type MenuEntry = { label: string; action: () => void; disabled?: boolean } | '---';
+  const menuDropdowns: Record<string, MenuEntry[]> = {
+    File: [
+      { label: 'Close', action: () => { playWindowClose(); closeWindow(id); setMenuOpen(null); } },
+    ],
+    Edit: [
+      { label: 'Select All', action: () => setMenuOpen(null), disabled: true },
+    ],
+    View: [
+      { label: 'Refresh', action: () => { setMenuOpen(null); window.location.reload(); } },
+    ],
+    Favorites: [
+      { label: 'Add to Favorites', action: () => setMenuOpen(null), disabled: true },
+    ],
+    Tools: [
+      { label: 'Internet Options', action: () => setMenuOpen(null), disabled: true },
+    ],
+    Help: [
+      { label: 'Keyboard Shortcuts', action: () => { openWindow('shortcuts'); setMenuOpen(null); } },
+      '---',
+      { label: 'About Portfolio',    action: () => { openWindow('about');     setMenuOpen(null); } },
+    ],
+  };
+
   // ── Title bar touch drag ─────────────────────────────────────────────────────
   const handleTitleTouchStart = (e: React.TouchEvent) => {
     if (win.isMaximized) return;
@@ -203,20 +243,24 @@ export default function XPWindow({
          maxWidth: 'calc(100vw - 4px)', maxHeight: 'calc(100dvh - 36px)' });
 
   const titleGrad = isActive
-    ? 'linear-gradient(180deg, #2c6fca 0%, #1748b0 50%, #1244a8 100%)'
-    : 'linear-gradient(180deg, #7a96c2 0%, #5a75a8 50%, #4a6490 100%)';
+    ? 'linear-gradient(180deg, var(--tb-from) 0%, var(--tb-mid) 50%, var(--tb-to) 100%)'
+    : 'linear-gradient(180deg, var(--tb-ia-from) 0%, var(--tb-ia-to) 100%)';
 
   return (
     <motion.div
       ref={windowRef}
+      role="dialog"
+      aria-modal={win.isOpen && !win.isMinimized}
+      aria-label={win.title}
       className="flex flex-col border border-[#0a246a] rounded-t-md select-none"
       style={{
         ...posStyle,
         zIndex: win.zIndex,
-        background: '#ece9d8',
-        boxShadow: isActive ? '4px 4px 18px rgba(0,0,0,0.65)' : '2px 2px 8px rgba(0,0,0,0.3)',
+        background: 'var(--win-bg)',
+        boxShadow: isActive ? '6px 6px 22px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.08)' : '2px 2px 8px rgba(0,0,0,0.3)',
         pointerEvents: win.isMinimized ? 'none' : 'auto',
         overflow: 'hidden',
+        transition: 'box-shadow 0.15s ease',
       }}
       animate={
         win.isMinimized
@@ -229,8 +273,8 @@ export default function XPWindow({
     >
       {/* ── Title Bar ── */}
       <div
-        className="h-[26px] flex items-center gap-1.5 px-1.5 flex-shrink-0 rounded-t-[5px]"
-        style={{ background: titleGrad, cursor: win.isMaximized ? 'default' : 'move' }}
+        className="xp-titlebar flex items-center gap-1.5 px-1.5 flex-shrink-0 rounded-t-[5px] relative"
+        style={{ background: titleGrad, cursor: win.isMaximized ? 'default' : 'grab' }}
         onMouseDown={handleTitleMouseDown}
         onDoubleClick={handleTitleDoubleClick}
         onTouchStart={handleTitleTouchStart}
@@ -245,6 +289,14 @@ export default function XPWindow({
         <span className="flex-1 text-white text-[11px] font-bold truncate" style={{ textShadow: '1px 1px 1px #0a2060' }}>
           {win.title}
         </span>
+        {/* Drag grip — only visible on touch (via CSS) */}
+        {!win.isMaximized && (
+          <div className="xp-drag-grip absolute left-1/2 -translate-x-1/2 items-center gap-[3px] pointer-events-none">
+            {[0,1,2].map(i => (
+              <div key={i} className="w-[3px] h-[14px] rounded-full bg-white/40" />
+            ))}
+          </div>
+        )}
         <div className="flex gap-0.5 flex-shrink-0">
           {/* Minimize */}
           <motion.button
@@ -284,16 +336,65 @@ export default function XPWindow({
       </div>
 
       {/* ── Menu Bar ── */}
-      <div className="h-[22px] bg-[#ece9d8] border-b border-[#aaa] flex items-center px-1 flex-shrink-0">
-        {menuItems.map((item) => (
-          <motion.span
-            key={item}
-            className="px-2 py-0.5 text-[11px] cursor-pointer rounded-sm"
-            whileHover={{ backgroundColor: '#316ac5', color: '#fff' }}
-          >
-            {item}
-          </motion.span>
-        ))}
+      <div
+        ref={menuBarRef}
+        className="h-[22px] bg-[#ece9d8] border-b border-[#aaa] flex items-center px-1 flex-shrink-0 relative z-[205]"
+      >
+        {menuItems.map((item) => {
+          const isOpen = menuOpen === item;
+          const entries: MenuEntry[] = menuDropdowns[item] ?? [];
+          return (
+            <div key={item} className="relative">
+              <motion.span
+                className={`px-2 py-0.5 text-[11px] cursor-pointer rounded-sm inline-block select-none ${
+                  isOpen ? 'bg-[#316ac5] text-white' : ''
+                }`}
+                whileHover={{ backgroundColor: '#316ac5', color: '#fff' }}
+                onClick={(e) => { e.stopPropagation(); setMenuOpen(isOpen ? null : item); }}
+              >
+                {item}
+              </motion.span>
+
+              <AnimatePresence>
+                {isOpen && entries.length > 0 && (
+                  <motion.div
+                    className="absolute left-0 top-[22px] min-w-[170px]"
+                    style={{
+                      background: '#ece9d8',
+                      border: '1px solid #888',
+                      boxShadow: '3px 3px 10px rgba(0,0,0,0.45)',
+                      fontFamily: 'Tahoma, sans-serif',
+                      zIndex: 9999,
+                    }}
+                    initial={{ opacity: 0, scaleY: 0.85, originY: 0 }}
+                    animate={{ opacity: 1, scaleY: 1 }}
+                    exit={{    opacity: 0, scaleY: 0.85 }}
+                    transition={{ duration: 0.1 }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {entries.map((entry, idx) =>
+                      entry === '---' ? (
+                        <div key={idx} className="h-px bg-[#b0ada0] mx-1 my-0.5" />
+                      ) : (
+                        <div
+                          key={idx}
+                          className={`px-4 py-[3px] text-[11px] whitespace-nowrap ${
+                            entry.disabled
+                              ? 'text-[#aaa] cursor-default'
+                              : 'cursor-pointer hover:bg-[#316ac5] hover:text-white'
+                          }`}
+                          onClick={() => { if (!entry.disabled) { playClick(); entry.action(); } }}
+                        >
+                          {entry.label}
+                        </div>
+                      )
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
       </div>
 
       {/* ── Toolbar (optional) ── */}
@@ -365,12 +466,12 @@ export default function XPWindow({
       {!win.isMaximized && (
         <>
           {/* Corners */}
-          <div className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize z-10" onMouseDown={(e) => handleResizeMouseDown(e, 'nw')} />
-          <div className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize z-10" onMouseDown={(e) => handleResizeMouseDown(e, 'ne')} />
-          <div className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize z-10" onMouseDown={(e) => handleResizeMouseDown(e, 'sw')} />
+          <div className="xp-resize-corner absolute top-0 left-0 w-3 h-3 cursor-nw-resize z-10" onMouseDown={(e) => handleResizeMouseDown(e, 'nw')} />
+          <div className="xp-resize-corner absolute top-0 right-0 w-3 h-3 cursor-ne-resize z-10" onMouseDown={(e) => handleResizeMouseDown(e, 'ne')} />
+          <div className="xp-resize-corner absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize z-10" onMouseDown={(e) => handleResizeMouseDown(e, 'sw')} />
           {/* Bottom-right corner gripper */}
           <div
-            className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize z-10 flex items-end justify-end pb-0.5 pr-0.5"
+            className="xp-resize-corner absolute bottom-0 right-0 w-4 h-4 cursor-se-resize z-10 flex items-end justify-end pb-0.5 pr-0.5"
             onMouseDown={(e) => handleResizeMouseDown(e, 'se')}
           >
             <svg width="10" height="10" viewBox="0 0 10 10" className="opacity-40">
@@ -380,10 +481,10 @@ export default function XPWindow({
             </svg>
           </div>
           {/* Edges */}
-          <div className="absolute top-0 left-3 right-3 h-1 cursor-n-resize" onMouseDown={(e) => handleResizeMouseDown(e, 'n')} />
-          <div className="absolute bottom-0 left-3 right-4 h-1 cursor-s-resize" onMouseDown={(e) => handleResizeMouseDown(e, 's')} />
-          <div className="absolute left-0 top-3 bottom-3 w-1 cursor-w-resize" onMouseDown={(e) => handleResizeMouseDown(e, 'w')} />
-          <div className="absolute right-0 top-3 bottom-3 w-1 cursor-e-resize" onMouseDown={(e) => handleResizeMouseDown(e, 'e')} />
+          <div className="xp-resize-edge-h absolute top-0 left-3 right-3 h-1 cursor-n-resize" onMouseDown={(e) => handleResizeMouseDown(e, 'n')} />
+          <div className="xp-resize-edge-h absolute bottom-0 left-3 right-4 h-1 cursor-s-resize" onMouseDown={(e) => handleResizeMouseDown(e, 's')} />
+          <div className="xp-resize-edge-v absolute left-0 top-3 bottom-3 w-1 cursor-w-resize" onMouseDown={(e) => handleResizeMouseDown(e, 'w')} />
+          <div className="xp-resize-edge-v absolute right-0 top-3 bottom-3 w-1 cursor-e-resize" onMouseDown={(e) => handleResizeMouseDown(e, 'e')} />
         </>
       )}
     </motion.div>

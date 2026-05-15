@@ -86,6 +86,37 @@ export default function ProjectsWindow() {
                   </motion.span>
                 ))}
               </div>
+              {/* External links */}
+              {(project.github || project.live) && (
+                <div className="flex gap-2 mt-1.5">
+                  {project.github && (
+                    <a
+                      href={project.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-0.5 text-[8px] px-1.5 py-0.5 border border-[#999] hover:bg-[#316ac5] hover:text-white hover:border-[#316ac5] transition-colors"
+                      style={{ background: 'linear-gradient(180deg,#ece9d8,#d4d0c8)', color: '#003cad' }}
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label={`View ${project.name} on GitHub`}
+                    >
+                      ✳ GitHub
+                    </a>
+                  )}
+                  {project.live && (
+                    <a
+                      href={project.live}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-0.5 text-[8px] px-1.5 py-0.5 border border-[#999] hover:bg-[#316ac5] hover:text-white hover:border-[#316ac5] transition-colors"
+                      style={{ background: 'linear-gradient(180deg,#ece9d8,#d4d0c8)', color: '#003cad' }}
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label={`View ${project.name} live site`}
+                    >
+                      🌐 Live
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         ))}

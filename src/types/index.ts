@@ -1,7 +1,8 @@
 export type WindowId =
   | 'about' | 'experience' | 'skills' | 'education' | 'contact' | 'projects' | 'terminal'
   | 'quiz' | 'radar' | 'timeline' | 'certs' | 'ratecard' | 'snippets' | 'shortcuts'
-  | 'minesweeper' | 'notepad' | 'taskmanager';
+  | 'minesweeper' | 'notepad' | 'taskmanager' | 'paint'
+  | 'calculator' | 'controlpanel' | 'mycomputer' | 'ie' | 'mediaplayer';
 
 export interface WindowState {
   id: WindowId;
@@ -23,6 +24,12 @@ export interface JobData {
   period: string;
   icon: string;
   duties: string[];
+  /** Accent colour used in timeline and experience views */
+  color?: string;
+  /** One-line highlight shown on the Career Timeline */
+  achievement?: string;
+  /** Skill tags displayed in the Timeline card expand */
+  timelineSkills?: string[];
 }
 
 export interface SkillData {
@@ -35,6 +42,8 @@ export interface ProjectData {
   description: string;
   tech: string[];
   icon: string;
+  github?: string;
+  live?: string;
 }
 
 export interface GermanWord {

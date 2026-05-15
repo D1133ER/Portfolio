@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useWindows } from '@/context/WindowContext';
 import { WindowId } from '@/types';
-import { getMuted, setMuted, playLogoff, playShutdown, playLogoffConfirm, playShutdownConfirm } from '@/utils/sounds';
+import { getMuted, setMuted, initMute, playLogoff, playShutdown, playLogoffConfirm, playShutdownConfirm } from '@/utils/sounds';
 import GlitchText from './GlitchText';
 
 interface TaskbarProps {
@@ -19,12 +19,27 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
   const [logOffDialog, setLogOffDialog] = useState<'logoff' | 'shutdown' | null>(null);
   const [muted, setMutedState] = useState(false);
   const [taskbarMenu, setTaskbarMenu] = useState<{ id: WindowId; x: number; y: number } | null>(null);
+  const [startSearch, setStartSearch] = useState('');
+  const [weather, setWeather] = useState<{ temp: number | null; icon: string; label: string } | null>(null);
+
+  // Fetch Pokhara weather once on mount
+  useEffect(() => {
+    fetch('/api/weather')
+      .then((r) => r.json())
+      .then((d) => setWeather({ temp: d.temp, icon: d.icon, label: d.label }))
+      .catch(() => {}); // silent fail — weather is non-critical
+  }, []);
 
   const toggleMute = () => {
     const next = !muted;
     setMutedState(next);
     setMuted(next);
   };
+
+  // Load persisted mute preference on mount
+  useEffect(() => {
+    setMutedState(initMute());
+  }, []);
 
   useEffect(() => {
     const update = () => {
@@ -38,7 +53,7 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
       setDate(`${months[now.getMonth()]} ${now.getDate()}`);
     };
     update();
-    const interval = setInterval(update, 10000);
+    const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -79,7 +94,19 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
     { id: 'minesweeper', icon: '💣', label: 'Minesweeper'  },
     { id: 'notepad',     icon: '🗒️', label: 'Notepad'      },
     { id: 'taskmanager', icon: '📋', label: 'Task Manager' },
+    { id: 'paint',       icon: '🎨', label: 'Paint'       },
+    { id: 'calculator',  icon: '🔢', label: 'Calculator'  },
+    { id: 'controlpanel',icon: '⚙️', label: 'Control Panel'},
+    { id: 'mycomputer',  icon: '💻', label: 'My Computer' },
+    { id: 'ie',          icon: '🌐', label: 'Internet Explorer'},
+    { id: 'mediaplayer', icon: '▶️', label: 'Media Player'},
   ];
+
+  const filteredMenuItems = startSearch
+    ? startMenuItems.filter((item) =>
+        item.label.toLowerCase().includes(startSearch.toLowerCase())
+      )
+    : startMenuItems;
 
   return (
     <>
@@ -276,10 +303,9 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
           <>
             <motion.div
               className="absolute inset-0 z-[48]"
-              onClick={() => setStartOpen(false)}
+              onClick={() => { setStartOpen(false); setStartSearch(''); }}
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            />
-            <motion.div
+            /><motion.div
               className="absolute left-0 z-[49] rounded-t-lg overflow-hidden flex flex-col"
               style={{ bottom: 'calc(30px + env(safe-area-inset-bottom, 0px))', background: '#ece9d8', border: '2px solid #0a246a', boxShadow: '4px -4px 18px rgba(0,0,0,0.5)', width: 'min(280px, 100vw)', maxHeight: 'calc(100dvh - 34px)' }}
               initial={{ y: 20, opacity: 0, scaleY: 0.8 }}
@@ -301,12 +327,36 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
               </div>
               <div className="h-[2px] bg-gradient-to-r from-orange-400 via-orange-300 to-transparent" />
 
+              {/* Search bar */}
+              <div className="px-2 py-1.5 border-b border-[#c0bdb0]" style={{ background: '#dde4f0' }}>
+                <div className="flex items-center gap-1 bg-white border border-[#999] px-2 py-0.5">
+                  <span className="text-[10px] text-[#888]">🔍</span>
+                  <input
+                    type="text"
+                    placeholder="Search apps..."
+                    value={startSearch}
+                    onChange={(e) => setStartSearch(e.target.value)}
+                    className="flex-1 text-[10px] outline-none bg-transparent"
+                    autoComplete="off"
+                    aria-label="Search start menu"
+                  />
+                  {startSearch && (
+                    <button onClick={() => setStartSearch('')} className="text-[10px] text-[#888] hover:text-black">✕</button>
+                  )}
+                </div>
+              </div>
+
               {/* Left / Right panels */}
               <div className="flex flex-1 overflow-hidden min-h-0">
-                {/* Left — pinned apps */}
+                {/* Left - pinned apps */}
                 <div className="flex-1 border-r border-[#c0bdb0] py-1 overflow-y-auto">
-                  <div className="text-[9px] font-bold uppercase px-3 py-1 text-[#555]">Open</div>
-                  {startMenuItems.map((item, i) => (
+                  <div className="text-[9px] font-bold uppercase px-3 py-1 text-[#555]">
+                    {startSearch ? `Results (${filteredMenuItems.length})` : 'Open'}
+                  </div>
+                  {filteredMenuItems.length === 0 && (
+                    <div className="px-3 py-2 text-[10px] text-[#888] italic">No apps found</div>
+                  )}
+                  {filteredMenuItems.map((item, i) => (
                     <motion.div
                       key={item.id}
                       className="flex items-center gap-3 px-3 py-1.5 cursor-pointer text-[11px] hover:bg-[#316ac5] hover:text-white transition-colors"
@@ -320,10 +370,10 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
                     </motion.div>
                   ))}
                 </div>
-                {/* Right — system places */}
+                {/* Right - system places */}
                 <div className="w-[110px] py-1 bg-[#dde4f0]">
                   <div className="text-[9px] font-bold uppercase px-2 py-1 text-[#555]">System</div>
-                  {([
+                  {([  
                     { label: 'My Documents', id: 'projects'  as WindowId },
                     { label: 'My Computer',  id: 'about'     as WindowId },
                     { label: 'Control Panel',id: 'skills'    as WindowId },
@@ -336,6 +386,17 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
                       {label}
                     </div>
                   ))}
+                  <div className="h-px bg-[#c0bdb0] mx-1 my-0.5" />
+                  <a
+                    href="/nischal-bhandari-cv.pdf"
+                    download="Nischal-Bhandari-CV.pdf"
+                    className="flex items-center gap-1 px-2 py-1.5 text-[10px] cursor-pointer hover:bg-[#316ac5] hover:text-white transition-colors no-underline"
+                    style={{ color: 'inherit' }}
+                    onClick={() => setStartOpen(false)}
+                    aria-label="Download CV PDF"
+                  >
+                    📄 Download CV
+                  </a>
                 </div>
               </div>
 
@@ -369,7 +430,7 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
       {/* ── Taskbar ── */}
       <motion.div
         className="absolute bottom-0 left-0 right-0 flex items-center z-[50] border-t border-[#4a84d8] xp-taskbar"
-        style={{ background: 'linear-gradient(180deg, #2573c2 0%, #1550a0 50%, #1244a0 100%)', minHeight: 30 }}
+        style={{ background: 'linear-gradient(180deg, var(--tk-from) 0%, var(--tk-to) 100%)', minHeight: 30 }}
         initial={{ y: 30 }} animate={{ y: 0 }}
         transition={{ delay: 0.2, type: 'spring', stiffness: 120 }}
       >
@@ -378,8 +439,8 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
           className="h-full flex items-center gap-1.5 px-4 cursor-pointer text-white text-xs font-bold rounded-r-2xl border-r border-green-900 flex-shrink-0"
           style={{
             background: startOpen
-              ? 'linear-gradient(180deg, #2d6e10 0%, #1d5008 50%, #163d06 100%)'
-              : 'linear-gradient(180deg, #5fad2a 0%, #3b8c16 50%, #2d7012 100%)',
+              ? 'linear-gradient(180deg, var(--st-active-from) 0%, var(--st-active-to) 100%)'
+              : 'linear-gradient(180deg, var(--st-from) 0%, var(--st-to) 100%)',
             boxShadow: startOpen
               ? 'inset 2px 2px 4px rgba(0,0,0,0.5)'
               : 'inset 0 1px 2px rgba(255,255,255,0.3)',
@@ -449,7 +510,7 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
                   whileHover={{ backgroundColor: 'rgba(255,255,255,0.25)' }}
                 >
                   <span className="flex-shrink-0">{w.icon}</span>
-                  <span className="truncate text-[9px]">{w.title.split('—')[0].trim()}</span>
+                  <span className="truncate text-[9px]">{w.title.split('-')[0].trim()}</span>
                 </motion.button>
               );
             })}
@@ -461,6 +522,15 @@ export default function Taskbar({ onLogOff }: TaskbarProps) {
           <div className="flex items-center gap-1.5 px-2 h-full border-l border-white/20"
             style={{ background: 'rgba(0,0,0,0.18)' }}>
             <span className="text-[12px] opacity-75 cursor-default" title="Network" aria-label="Network status" role="img">📶</span>
+            {weather?.temp !== null && weather && (
+              <span
+                className="text-[10px] opacity-85 cursor-default leading-none"
+                title={`${weather.label} · Pokhara, Nepal`}
+                aria-label={`Weather: ${weather.label}, ${weather.temp}°C`}
+              >
+                {weather.icon} {weather.temp}°
+              </span>
+            )}
             <motion.button
               className="text-[12px] opacity-75 cursor-pointer bg-transparent border-none p-0 leading-none"
               title={muted ? 'Unmute sounds' : 'Mute sounds'}

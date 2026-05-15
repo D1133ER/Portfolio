@@ -7,68 +7,16 @@ import { techEvolution, jobData } from '@/data/portfolio';
 
 type Tab = 'Career' | 'TechDNA';
 
-const careerEvents = [
-  {
-    year: '2019',
-    role: 'IT Officer',
-    company: 'Kaski Sewa Hospital',
-    icon: '🏥',
-    color: '#1244a8',
-    dur: '2019 – 2024',
-    achievement: 'Managed entire hospital IT infrastructure for 5 years',
-    skills: ['Windows Server', 'Active Directory', 'Networking', 'SQL', 'Security'],
-  },
-  {
-    year: '2021',
-    role: 'Front-End Intern',
-    company: 'Searchable Design LLC',
-    icon: '💻',
-    color: '#2e7d32',
-    dur: '2021',
-    achievement: 'Built Angular web apps, code review experience in US startup',
-    skills: ['Angular', 'TypeScript', 'REST APIs', 'Git'],
-  },
-  {
-    year: '2024',
-    role: 'QA Intern',
-    company: 'Skybase Innovation',
-    icon: '🔬',
-    color: '#6a1b9a',
-    dur: '2024',
-    achievement: 'Improved test coverage, identified critical production bugs',
-    skills: ['Selenium', 'Jest', 'Bug Tracking', 'QA Processes'],
-  },
-  {
-    year: '2024',
-    role: 'Full Stack Developer',
-    company: 'Infomax',
-    icon: '🌐',
-    color: '#e65100',
-    dur: '2024',
-    achievement: 'Full-stack apps with modern React/Node stack',
-    skills: ['React', 'Node.js', 'PostgreSQL', 'Express'],
-  },
-  {
-    year: '2024',
-    role: 'German Instructor',
-    company: 'ING Skill Academy',
-    icon: '📚',
-    color: '#00695c',
-    dur: 'Ongoing',
-    achievement: 'Teaching German B1 level — 20+ students',
-    skills: ['Curriculum Design', 'Teaching', 'German B1', 'Public Speaking'],
-  },
-  {
-    year: '2024',
-    role: 'BD / PR Officer',
-    company: 'Direct Marketing Unit',
-    icon: '📊',
-    color: '#37474f',
-    dur: '2024 – Present',
-    achievement: 'Growing client base and market presence',
-    skills: ['Business Dev', 'PR', 'Client Relations', 'Strategy'],
-  },
-];
+/** Derive career events directly from the single-source jobData */
+const careerEvents = Object.values(jobData).map((job) => ({
+  role:       job.role,
+  company:    job.company,
+  icon:       job.icon,
+  color:      job.color ?? '#316ac5',
+  dur:        job.period,
+  achievement: job.achievement ?? '',
+  skills:     job.timelineSkills ?? [],
+}));
 
 export default function TimelineWindow() {
   const [activeTab,   setActiveTab]   = useState<Tab>('Career');
@@ -97,7 +45,7 @@ export default function TimelineWindow() {
         {/* ── Career Tab ── */}
         {activeTab === 'Career' && (
           <div className="relative pl-8">
-            {/* Vertical line */}
+            {/* Vertical guide line */}
             <div className="absolute left-[14px] top-0 bottom-0 w-0.5 bg-[#b8b5a8]" />
 
             {careerEvents.map((ev, i) => (
@@ -108,7 +56,7 @@ export default function TimelineWindow() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.08 }}
               >
-                {/* Dot */}
+                {/* Timeline dot */}
                 <motion.div
                   className="absolute -left-[22px] top-[10px] w-3 h-3 rounded-full border-2 border-white"
                   style={{ background: ev.color }}
@@ -146,17 +94,21 @@ export default function TimelineWindow() {
                         className="overflow-hidden"
                       >
                         <div className="px-3 pb-2.5 border-t border-[#c0bdb0]">
-                          <p className="text-[10px] text-[#333] mt-2 mb-2 leading-relaxed">
-                            🏆 {ev.achievement}
-                          </p>
-                          <div className="flex flex-wrap gap-1">
-                            {ev.skills.map((s) => (
-                              <span key={s} className="text-[9px] px-1.5 py-0.5 border border-[#b8b5a8]"
-                                style={{ background: '#d4d0c8' }}>
-                                {s}
-                              </span>
-                            ))}
-                          </div>
+                          {ev.achievement && (
+                            <p className="text-[10px] text-[#333] mt-2 mb-2 leading-relaxed">
+                              🏆 {ev.achievement}
+                            </p>
+                          )}
+                          {ev.skills.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                              {ev.skills.map((s) => (
+                                <span key={s} className="text-[9px] px-1.5 py-0.5 border border-[#b8b5a8]"
+                                  style={{ background: '#d4d0c8' }}>
+                                  {s}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     )}
@@ -186,15 +138,12 @@ export default function TimelineWindow() {
                 onClick={() => setExpanded(expanded === i + 100 ? null : i + 100)}
               >
                 <div className="flex items-center gap-3 px-3 py-2">
-                  {/* Year badge */}
                   <div
                     className="text-white text-[10px] font-bold px-2 py-1 flex-shrink-0 min-w-[40px] text-center"
                     style={{ background: phase.color }}
                   >
                     {phase.year}
                   </div>
-
-                  {/* Bar */}
                   <div className="flex-1 min-w-0">
                     <div className="text-[10px] font-bold text-[#0a246a] mb-1">{phase.phase}</div>
                     <div className="h-2 bg-[#d4d0c8] overflow-hidden">
@@ -207,7 +156,6 @@ export default function TimelineWindow() {
                       />
                     </div>
                   </div>
-
                   <span className="text-[9px] text-[#888] ml-1 flex-shrink-0">
                     {phase.techs.length} techs
                   </span>
@@ -241,7 +189,7 @@ export default function TimelineWindow() {
               </motion.div>
             ))}
 
-            {/* Legend: continuous growth line */}
+            {/* Growth bar chart */}
             <div className="mt-2 border border-[#b8b5a8] p-2.5" style={{ background: '#ece9d8' }}>
               <div className="text-[10px] font-bold text-[#0a246a] mb-2">📈 Growth Summary</div>
               <div className="flex items-end gap-1 h-[50px]">

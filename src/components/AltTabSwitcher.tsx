@@ -25,9 +25,13 @@ export default function AltTabSwitcher() {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (!e.altKey || e.key !== 'Tab') return;
+      // Alt+Tab
+      const isAltTab  = e.altKey  && e.key === 'Tab';
+      // Ctrl+Tab
+      const isCtrlTab = e.ctrlKey && e.key === 'Tab';
+      if (!isAltTab && !isCtrlTab) return;
       e.preventDefault();
-      const wins = openWindowsRef.current;
+      const wins  = openWindowsRef.current;
       const count = wins.length;
       if (count === 0) return;
 
@@ -42,14 +46,13 @@ export default function AltTabSwitcher() {
     };
 
     const onKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'Alt') {
-        if (visibleRef.current) {
-          setVisible(false);
-          const w = openWindowsRef.current[selectedIdxRef.current];
-          if (w) {
-            if (w.isMinimized) restoreWindowRef.current(w.id);
-            focusWindowRef.current(w.id);
-          }
+      // Commit selection when Alt or Ctrl is released
+      if ((e.key === 'Alt' || e.key === 'Control') && visibleRef.current) {
+        setVisible(false);
+        const w = openWindowsRef.current[selectedIdxRef.current];
+        if (w) {
+          if (w.isMinimized) restoreWindowRef.current(w.id);
+          focusWindowRef.current(w.id);
         }
       }
       if (e.key === 'Escape' && visibleRef.current) {
@@ -128,7 +131,7 @@ export default function AltTabSwitcher() {
           </div>
 
           <div className="text-[#aab4d8] text-[9px] text-center">
-            Alt+Tab to cycle · Release Alt to switch
+            Alt+Tab / Ctrl+Tab to cycle · release modifier to switch
           </div>
         </motion.div>
       </motion.div>

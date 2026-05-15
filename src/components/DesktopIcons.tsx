@@ -1,16 +1,18 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { useWindows } from '@/context/WindowContext';
 import { WindowId } from '@/types';
+
+export type IconSortMode = 'name' | 'type' | null;
 
 const desktopIcons: { id: WindowId | '__recycle__'; icon: string; label: string }[] = [
   { id: 'about',       icon: '🖥️', label: 'My Portfolio'  },
   { id: 'projects',    icon: '📂', label: 'My Projects'   },
   { id: 'skills',      icon: '⚙️', label: 'My Skills'     },
   { id: 'terminal',    icon: '💻', label: 'cmd.exe'       },
-  { id: 'quiz',        icon: '🇞🇪', label: 'Deutsch Quiz' },
+  { id: 'quiz',        icon: '🇩🇪', label: 'Deutsch Quiz' },
   { id: 'radar',       icon: '📊', label: 'Skill Radar'  },
   { id: 'timeline',    icon: '📅', label: 'Timeline'      },
   { id: 'certs',       icon: '🏆', label: 'Credentials'  },
@@ -20,6 +22,12 @@ const desktopIcons: { id: WindowId | '__recycle__'; icon: string; label: string 
   { id: 'minesweeper', icon: '💣', label: 'Minesweeper'  },
   { id: 'notepad',     icon: '🗒️', label: 'Notepad'      },
   { id: 'taskmanager', icon: '📋', label: 'Task Mgr'     },
+  { id: 'paint',       icon: '🎨', label: 'Paint'       },
+  { id: 'calculator',  icon: '🔢', label: 'Calculator'  },
+  { id: 'controlpanel',icon: '⚙️', label: 'Control Panel'},
+  { id: 'mycomputer',  icon: '💻', label: 'My Computer' },
+  { id: 'ie',          icon: '🌐', label: 'Internet Exp.'},
+  { id: 'mediaplayer', icon: '▶️', label: 'Media Player'},
   { id: '__recycle__', icon: '🗑️', label: 'Recycle Bin'  },
 ];
 
@@ -42,6 +50,12 @@ const windowTitles: Record<WindowId, string> = {
   minesweeper: 'Minesweeper',
   notepad:    'Notepad',
   taskmanager: 'Task Manager',
+  paint:       'Paint',
+  calculator:  'Calculator',
+  controlpanel:'Control Panel',
+  mycomputer:  'My Computer',
+  ie:          'Internet Explorer',
+  mediaplayer: 'Media Player',
 };
 
 const windowIcons: Record<WindowId, string> = {
@@ -49,13 +63,15 @@ const windowIcons: Record<WindowId, string> = {
   contact: '✉️', projects: '📂', terminal: '💻', quiz: '🇩🇪',
   radar: '📊', timeline: '📅', certs: '🏆', ratecard: '💼',
   snippets: '📝', shortcuts: '⌨️',
-  minesweeper: '💣', notepad: '🗒️', taskmanager: '📋',
+  minesweeper: '💣', notepad: '🗒️', taskmanager: '📋', paint: '🎨',
+  calculator: '🔢', controlpanel: '⚙️', mycomputer: '💻', ie: '🌐', mediaplayer: '▶️',
 };
 
-export default function DesktopIcons() {
+export default function DesktopIcons({ sortMode }: { sortMode?: IconSortMode }) {
   const { openWindow, recycledIds, restoreFromRecycle, emptyRecycleBin } = useWindows();
   const [selected, setSelected] = useState<string | null>(null);
   const [showRecycleBin, setShowRecycleBin] = useState(false);
+  const [iconMenu, setIconMenu] = useState<{ id: string; x: number; y: number } | null>(null);
   const [recycleBinPos, setRecycleBinPos] = useState<{ x: number; y: number } | null>(null);
   const recycleDragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
   const recycleDialogRef = useRef<HTMLDivElement>(null);
@@ -96,7 +112,32 @@ export default function DesktopIcons() {
   const handleClick = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelected(id);
+    setIconMenu(null);
   }, []);
+
+  const handleIconContextMenu = useCallback((id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelected(id);
+    setIconMenu({ id, x: e.clientX, y: e.clientY });
+  }, []);
+
+  // Sorted icon list derived from sortMode prop
+  const sortedIcons = useMemo(() => {
+    const appIcons = desktopIcons.filter((i) => i.id !== '__recycle__');
+    const recycle  = desktopIcons.filter((i) => i.id === '__recycle__');
+    if (sortMode === 'name') {
+      return [...appIcons.sort((a, b) => a.label.localeCompare(b.label)), ...recycle];
+    }
+    if (sortMode === 'type') {
+      return [
+        ...appIcons.filter((i) => !['minesweeper','notepad','paint'].includes(i.id as string)).sort((a, b) => a.label.localeCompare(b.label)),
+        ...appIcons.filter((i) =>  ['minesweeper','notepad','paint'].includes(i.id as string)).sort((a, b) => a.label.localeCompare(b.label)),
+        ...recycle,
+      ];
+    }
+    return desktopIcons;
+  }, [sortMode]);
 
   const handleDoubleClick = useCallback((id: string) => {
     if (id === '__recycle__') {
@@ -112,15 +153,18 @@ export default function DesktopIcons() {
     <div
       className="absolute top-2 left-2 z-[5] flex flex-col flex-wrap gap-1 xp-desktop-icons"
       style={{ maxHeight: 'calc(100dvh - 60px)', maxWidth: 'calc(100vw - 8px)', overflow: 'hidden' }}
-      onClick={() => setSelected(null)}
+      onClick={() => { setSelected(null); setIconMenu(null); }}
     >
-      {desktopIcons.map((item, i) => {
+      {sortedIcons.map((item, i) => {
         const isSelected = selected === item.id;
         const isRecycle  = item.id === '__recycle__';
         return (
           <motion.div
             key={item.id}
             className="flex flex-col items-center gap-0.5 cursor-pointer w-[60px] sm:w-[68px] p-1 rounded-sm"
+            role="button"
+            tabIndex={0}
+            aria-label={`Open ${item.label}`}
             style={{
               backgroundColor: isSelected ? 'rgba(49,106,197,0.55)' : 'transparent',
               outline: isSelected ? '1px dotted rgba(255,255,255,0.7)' : 'none',
@@ -133,6 +177,13 @@ export default function DesktopIcons() {
             onClick={(e) => handleClick(item.id, e)}
             onDoubleClick={() => handleDoubleClick(item.id)}
             onTouchEnd={(e) => { e.preventDefault(); handleDoubleClick(item.id); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleDoubleClick(item.id);
+              }
+            }}
+            onContextMenu={(e) => handleIconContextMenu(item.id, e)}
           >
             <motion.span
               className="text-[28px] sm:text-[34px] leading-none select-none relative"
@@ -158,6 +209,47 @@ export default function DesktopIcons() {
           </motion.div>
         );
       })}
+
+      {/* ── Per-icon context menu ── */}
+      <AnimatePresence>
+        {iconMenu && iconMenu.id !== '__recycle__' && (
+          <>
+            <div className="fixed inset-0 z-[92]" onClick={() => setIconMenu(null)}
+              onContextMenu={(e) => { e.preventDefault(); setIconMenu(null); }} />
+            <motion.div
+              className="fixed z-[93] min-w-[140px]"
+              style={{
+                left: Math.min(iconMenu.x, (typeof window !== 'undefined' ? window.innerWidth : 800) - 148),
+                top:  Math.min(iconMenu.y, (typeof window !== 'undefined' ? window.innerHeight : 600) - 80),
+                background: '#ece9d8',
+                border: '1px solid #888',
+                boxShadow: '3px 3px 10px rgba(0,0,0,0.45)',
+                fontFamily: 'Tahoma, sans-serif',
+              }}
+              initial={{ opacity: 0, scale: 0.92, y: -4 }}
+              animate={{ opacity: 1, scale: 1,    y: 0 }}
+              exit={{    opacity: 0, scale: 0.92, y: -4 }}
+              transition={{ duration: 0.1 }}
+            >
+              {[
+                { label: `💻 Open`, action: () => { handleDoubleClick(iconMenu.id); setIconMenu(null); } },
+                null,
+                { label: `ℹ️  Properties`, action: () => { openWindow('about'); setIconMenu(null); } },
+              ].map((item, i) =>
+                item === null ? (
+                  <div key={i} className="h-px bg-[#b0ada0] mx-1 my-0.5" />
+                ) : (
+                  <div key={i}
+                    className="px-3 py-1 text-[11px] cursor-pointer hover:bg-[#316ac5] hover:text-white"
+                    onClick={(e) => { e.stopPropagation(); item.action(); }}>
+                    {item.label}
+                  </div>
+                )
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* ── Recycle Bin Dialog ── */}
       <AnimatePresence>

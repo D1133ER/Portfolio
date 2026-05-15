@@ -2,6 +2,8 @@
 // All functions are safe to call from any component — they silently
 // do nothing if the AudioContext cannot be created or if muted.
 
+import { ls, STORAGE_KEYS } from './storage';
+
 let _muted = false;
 let _ctx: AudioContext | null = null;
 
@@ -27,6 +29,14 @@ export function getMuted() {
 }
 export function setMuted(v: boolean) {
   _muted = v;
+  ls.set(STORAGE_KEYS.MUTE, v ? '1' : '0');
+}
+
+/** Call once on mount to load the saved mute preference. Returns the loaded value. */
+export function initMute(): boolean {
+  const saved = ls.get<string | null>(STORAGE_KEYS.MUTE, null);
+  if (saved !== null) _muted = saved === '1';
+  return _muted;
 }
 
 function note(freq: number, t: number, dur: number, type: OscillatorType = 'sine', vol = 0.18) {
