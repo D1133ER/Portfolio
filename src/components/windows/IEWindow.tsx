@@ -64,7 +64,7 @@ function HomeContent() {
       </table>
       <hr style={{ borderColor: '#ccc', margin: '12px 0' }} />
       <p style={{ fontSize: 11, color: '#888', textAlign: 'center' }}>
-        © 2026 Nischal Bhandari · Pokhara, Nepal · nischalbhandari.com.np
+        © 2026 Nischal Bhandari · Pokhara, Nepal · nischalbhandari9825.com.np
       </p>
     </div>
   );
@@ -93,12 +93,12 @@ function ErrorContent({ url }: { url: string }) {
 }
 
 const PAGES: Record<string, Page> = {
-  'nischalbhandari.com.np':   { title: 'Nischal Bhandari — Portfolio', render: HomeContent },
-  'www.nischalbhandari.com.np':{ title: 'Nischal Bhandari — Portfolio', render: HomeContent },
+  'nischalbhandari9825.com.np':   { title: 'Nischal Bhandari — Portfolio', render: HomeContent },
+  'www.nischalbhandari9825.com.np':{ title: 'Nischal Bhandari — Portfolio', render: HomeContent },
   'about:home':               { title: 'MSN — Your personal internet', render: HomeContent },
   'about:blank':              { title: 'about:blank', render: BlankContent },
-  'http://nischalbhandari.com.np': { title: 'Nischal Bhandari — Portfolio', render: HomeContent },
-  'https://nischalbhandari.com.np':{ title: 'Nischal Bhandari — Portfolio', render: HomeContent },
+  'http://nischalbhandari9825.com.np': { title: 'Nischal Bhandari — Portfolio', render: HomeContent },
+  'https://nischalbhandari9825.com.np':{ title: 'Nischal Bhandari — Portfolio', render: HomeContent },
 };
 
 const EXTERNAL_PREFIXES = [
@@ -111,12 +111,12 @@ const EXTERNAL_PREFIXES = [
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function IEWindow() {
-  const [addressInput, setAddressInput] = useState('nischalbhandari.com.np');
-  const [currentUrl,   setCurrentUrl]   = useState('nischalbhandari.com.np');
-  const [history,      setHistory]      = useState(['nischalbhandari.com.np']);
+  const [addressInput, setAddressInput] = useState('nischalbhandari9825.com.np');
+  const [currentUrl,   setCurrentUrl]   = useState('nischalbhandari9825.com.np');
+  const [history,      setHistory]      = useState(['nischalbhandari9825.com.np']);
   const [histIdx,      setHistIdx]      = useState(0);
   const [loading,      setLoading]      = useState(false);
-  const [tabs, setTabs] = useState([{ id: 0, url: 'nischalbhandari.com.np', title: 'Nischal Bhandari — Portfolio' }]);
+  const [tabs, setTabs] = useState([{ id: 0, url: 'nischalbhandari9825.com.np', title: 'Nischal Bhandari — Portfolio' }]);
   const [activeTab, setActiveTab] = useState(0);
 
   const navigateTo = useCallback((rawUrl: string) => {
@@ -146,7 +146,7 @@ export default function IEWindow() {
 
   const goBack    = () => { if (histIdx > 0) { const u = history[histIdx-1]; setCurrentUrl(u); setAddressInput(u); setHistIdx(i => i-1); } };
   const goForward = () => { if (histIdx < history.length-1) { const u = history[histIdx+1]; setCurrentUrl(u); setAddressInput(u); setHistIdx(i => i+1); } };
-  const goHome    = () => navigateTo('nischalbhandari.com.np');
+  const goHome    = () => navigateTo('nischalbhandari9825.com.np');
   const refresh   = () => navigateTo(currentUrl);
   const stop      = () => setLoading(false);
 

@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://nischalbhandari.com.np/sitemap.xml",
+    sitemap: "https://nischalbhandari9825.com.np/sitemap.xml",
   };
 }

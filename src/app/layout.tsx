@@ -3,7 +3,7 @@ import "./globals.css";
 
 import PwaRegistrar from '@/components/PwaRegistrar';
 
-const siteUrl = "https://nischalbhandari.com.np";
+const siteUrl = "https://nischalbhandari9825.com.np";
 
 export const metadata: Metadata = {
   title: "Nischal Bhandari — Full Stack Developer & IT Professional",

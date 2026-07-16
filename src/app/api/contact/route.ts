@@ -157,7 +157,7 @@ async function sendEmail(name: string, email: string, message: string): Promise<
         <p style="color:#333;white-space:pre-wrap;margin:0;line-height:1.6;font-size:13px;">${escapeHtml(message)}</p>
       </div>
       <p style="color:#aaa;font-size:11px;margin-top:20px;text-align:center;border-top:1px solid #eee;padding-top:12px;">
-        Sent from <a href="https://nischalbhandari.com.np" style="color:#aaa;">nischalbhandari.com.np</a> portfolio contact form
+        Sent from <a href="https://nischalbhandari9825.com.np" style="color:#aaa;">nischalbhandari9825.com.np</a> portfolio contact form
       </p>
     </div>
   `;

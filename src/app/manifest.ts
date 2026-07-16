@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const siteUrl = 'https://nischalbhandari.com.np';
+const siteUrl = 'https://nischalbhandari9825.com.np';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {

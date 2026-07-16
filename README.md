@@ -4,7 +4,7 @@ An interactive Windows XP-style portfolio built with Next.js, React, TypeScript,
 
 The site recreates an old-school desktop flow with a boot screen, login screen, draggable windows, system sounds, themed wallpapers, and multiple mini-apps that present portfolio content in a playful but still usable way.
 
-Live site: [nischalbhandari.com.np](https://nischalbhandari.com.np)
+Live site: [nischalbhandari9825.com.np](https://nischalbhandari9825.com.np)
 
 ## Highlights
 

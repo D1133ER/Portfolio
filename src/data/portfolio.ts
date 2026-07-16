@@ -143,7 +143,7 @@ export const projects: ProjectData[] = [
     tech: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Framer Motion'],
     icon: '💾',
     github: 'https://github.com/Nischal00/nischal-portfolio',
-    live: 'https://nischalbhandari.com.np',
+    live: 'https://nischalbhandari9825.com.np',
   },
 ];
 

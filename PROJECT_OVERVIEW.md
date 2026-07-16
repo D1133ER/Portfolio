@@ -32,7 +32,7 @@
 | **Owner** | Nischal Bhandari |
 | **Role** | IT Graduate, Full Stack Developer, German Language Instructor |
 | **Location** | Pokhara, Nepal |
-| **Site URL** | https://nischalbhandari.com.np |
+| **Site URL** | https://nischalbhandari9825.com.np |
 | **GitHub** | https://github.com/Nischal00 |
 | **LinkedIn** | https://linkedin.com/in/nischal-bhandari-708b712a3 |
 | **Email** | nischalbhandari11@gmail.com |
@@ -540,7 +540,7 @@ interface CodeSnippet    { title, lang, description, code }
 | `description` | Windows XP themed portfolio... |
 | `keywords` | Nischal Bhandari, Full Stack Developer, IT Professional, JavaScript, Angular, React, Node.js, Python |
 | `og:type` | website |
-| `og:url` | https://nischalbhandari.com.np |
+| `og:url` | https://nischalbhandari9825.com.np |
 | `og:title` | Nischal Bhandari — Full Stack Developer & IT Professional |
 | `twitter:card` | summary_large_image |
 | `robots` | index: true, follow: true |
@@ -552,7 +552,7 @@ interface CodeSnippet    { title, lang, description, code }
 **Sitemap & Robots:**
 - `src/app/sitemap.ts` — generates `/sitemap.xml`
 - `src/app/robots.ts` — generates `/robots.txt`
-- Both use hardcoded `siteUrl = "https://nischalbhandari.com.np"` — must match actual deployed domain.
+- Both use hardcoded `siteUrl = "https://nischalbhandari9825.com.np"` — must match actual deployed domain.
 
 ---
 
@@ -692,7 +692,7 @@ interface CodeSnippet    { title, lang, description, code }
 
 | Setting | Value |
 |---|---|
-| **Target domain** | https://nischalbhandari.com.np |
+| **Target domain** | https://nischalbhandari9825.com.np |
 | **Recommended host** | Vercel (zero-config Next.js support) |
 | **Build command** | `npm run build` |
 | **Start command** | `npm start --hostname 0.0.0.0` |

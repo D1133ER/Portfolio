@@ -88,7 +88,7 @@ export async function GET() {
             <div style={{ display: 'flex', width: 8, height: 8, borderRadius: '50%', background: '#2ecc71' }} />
             <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 17 }}>Open to Opportunities · Pokhara, Nepal</span>
           </div>
-          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 17 }}>nischalbhandari.com.np</span>
+          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 17 }}>nischalbhandari9825.com.np</span>
         </div>
 
       </div>
