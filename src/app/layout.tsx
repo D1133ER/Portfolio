@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 import PwaRegistrar from '@/components/PwaRegistrar';
@@ -89,6 +90,7 @@ export default function RootLayout({
       <body className="bg-black overflow-hidden touch-none">
         <PwaRegistrar />
         {children}
+        <Analytics />
       </body>
     </html>
   );
